@@ -1,0 +1,70 @@
+<resources>
+    <string name="app_name">潜艇控制</string>
+    <string name="title_activity_controller">控制</string>
+
+    <string name="battery">电池</string>
+    <string name="ping">Ping</string>
+    <string name="orientation_angles">方位角</string>
+
+    <string name="motor_power">电机功率</string>
+    <string name="motor_0_name">左前方</string>
+    <string name="motor_1_name">右前方</string>
+    <string name="motor_2_name">左后方</string>
+    <string name="motor_3_name">右后方</string>
+    <string name="motor_4_name">左深度</string>
+    <string name="motor_5_name">右深度</string>
+    <string name="diving_power">下潜功率</string>
+
+    <string name="orientation_angles_null">null</string>
+    <string name="command_default">System Command ></string>
+    <string name="signal_default">Signal</string>
+
+    <string name="button_controller">进入控制</string>
+    <string name="button_permission">申请权限</string>
+    <string name="button_bluetooth">搜索蓝牙</string>
+
+    <string name="permission_not_given">权限授予失败！控制器无法继续工作</string>
+    <string name="permission_given">权限授予成功！</string>
+    <string name="permission_not_given_cannot_start_controller">权限授予失败！不能启动控制器</string>
+    <string name="permission_not_given_for_bluetooth">权限授予失败！无法启动蓝牙</string>
+    <string name="training_is_not_loaded">TensorFlow加载尚未完成，请等待…</string>
+
+    <string name="connection">连接</string>
+    <string name="searching_bluetooth_device">正在搜索蓝牙设备</string>
+    <string name="bluetooth_has_connected">蓝牙已经连接成功</string>
+    <string name="founded_no_device">没有找到蓝牙设备</string>
+    <string name="founded_default_device">发现默认设备</string>
+    <string name="founded_default_device_message">系统已经连接默认设备，即将进入控制器界面</string>
+    <string name="connect_success">连接成功</string>
+    <string name="connect_success_message">即将进入控制器界面</string>
+    <string name="connect_default_device_failed">连接默认设备失败</string>
+    <string name="STATE_CONNECTING">连接中…</string>
+    <string name="STATE_PAIRING">配对中…</string>
+    <string name="STATE_PAIRED">配对成功</string>
+    <string name="STATE_CONNECTED">连接成功</string>
+    <string name="STATE_DISCONNECTED">连接失败</string>
+    <string name="STATE_RELEASED">连接释放</string>
+
+    <string name="ERROR_LACK_LOCATION_PERMISSION">错误 缺少定位权限</string>
+    <string name="ERROR_LOCATION_SERVICE_CLOSED">错误 位置服务未开启</string>
+    <string name="ERROR_SCAN_FAILED">错误 搜索失败</string>
+
+    <string name="tab_auto">自动控制</string>
+    <string name="tab_manual">手动控制</string>
+
+    <string name="run_icon">▶</string>
+    <string name="pause_icon">| |</string>
+    <string name="emergency_stop_icon">■</string>
+
+    <string name="run">程序启动</string>
+    <string name="pause">程序暂停</string>
+    <string name="emergency_stop">紧急停止</string>
+    <string name="normal_stop">正常停止</string>
+
+    <string name="running_time">时间</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="exit">退出</string>
+    <string name="all_disconnect">断开全部连接</string>
+    <string name="about">关于</string>
+</resources>

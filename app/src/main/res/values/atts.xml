@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="InnerColor" format="color" />
+    <attr name="OuterColor" format="color" />
+    <declare-styleable name="NavView">
+        <attr name="InnerColor" />
+        <attr name="OuterColor" />
+    </declare-styleable>
+</resources>

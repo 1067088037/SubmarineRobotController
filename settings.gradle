@@ -1,0 +1,3 @@
+include ':app', ':transfer_api'
+rootProject.name = "SubmarineRobotController"
+include ':OpenCVLibrary'
