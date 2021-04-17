@@ -85,6 +85,13 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <Button
+        android:id="@+id/resetDepthPower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/reset_depth_power" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -94,7 +101,7 @@
         <edu.scut.submarinerobotcontroller.ui.view.GamepadStick
             android:id="@+id/gamepadLeftStick"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginStart="32dp"
             android:layout_marginTop="16dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -103,12 +110,67 @@
         <edu.scut.submarinerobotcontroller.ui.view.GamepadStick
             android:id="@+id/gamepadRightStick"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="32dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/servoBound"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:checked="true"
+            android:text="@string/servo_bound" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/servo1Text"
+                android:layout_width="80sp"
+                android:layout_height="wrap_content"
+                android:text="@string/left_servo_text" />
+
+            <androidx.appcompat.widget.AppCompatSeekBar
+                android:id="@+id/servo1Position"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="179" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/servo2Text"
+                android:layout_width="80sp"
+                android:layout_height="wrap_content"
+                android:text="@string/right_servo_text" />
+
+            <androidx.appcompat.widget.AppCompatSeekBar
+                android:id="@+id/servo2Position"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="179" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

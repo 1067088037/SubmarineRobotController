@@ -11,7 +11,7 @@ import kotlin.math.sign
 
 class ManualController : BaseController() {
 
-    private var depthPower = 0.0
+    var depthPower = 0.0
     private var depthControlClock = Clock()
 
     override fun run() {
@@ -40,6 +40,7 @@ class ManualController : BaseController() {
                         depthControlClock.reset()
                     }
                 }
+//                debug("DepthPower = $depthPower")
                 setTopPower(depthPower)
             }
 //            debug("One Loop Time = ${System.currentTimeMillis() - loopStartTime}")

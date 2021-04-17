@@ -30,9 +30,9 @@ class Motor constructor(
                     limit(value, -1.0, 1.0)
                 else 0.0
             setOrGetPower(inputPower)
+            Connector.updateMotorPower(port, inputPower)
+            Connector.updateMotorPowerWater(port, inputPower)
             val actualPower = if (direction == Direction.Forward) inputPower else -inputPower
-            Connector.updateMotorPower(port, actualPower)
-            Connector.updateMotorPowerWater(port, actualPower)
         }
         get() = setOrGetPower(Double.NaN)
 

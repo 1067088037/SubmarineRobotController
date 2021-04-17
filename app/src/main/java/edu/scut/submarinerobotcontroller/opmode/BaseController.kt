@@ -5,11 +5,7 @@ import cn.wandersnail.bluetooth.BTManager
 import cn.wandersnail.bluetooth.EventObserver
 import cn.wandersnail.commons.observer.Observe
 import edu.scut.submarinerobotcontroller.Connector
-import edu.scut.submarinerobotcontroller.Constant
-import edu.scut.submarinerobotcontroller.tools.MessageAndBytes
 import edu.scut.submarinerobotcontroller.tools.debug
-import edu.scut.submarinerobotcontroller.tools.limit
-import kotlin.system.measureTimeMillis
 
 abstract class BaseController : EventObserver, IRobotMode {
 
@@ -37,12 +33,12 @@ abstract class BaseController : EventObserver, IRobotMode {
     private fun onInit() {
         Connector.mainController = this
 
-        leftFrontMotor = Motor(this, "左前方", 0)
-        rightFrontMotor = Motor(this, "右前方", 1)
-        leftRearMotor = Motor(this, "左后方", 2)
-        rightRearMotor = Motor(this, "右后方", 3)
-        leftDepthMotor = Motor(this, "左深度", 4)
-        rightDepthMotor = Motor(this, "右深度", 5)
+        leftFrontMotor = Motor(this, "左前方", 0, Motor.Direction.Reserve)
+        rightFrontMotor = Motor(this, "右前方", 1, Motor.Direction.Forward)
+        leftRearMotor = Motor(this, "左后方", 2, Motor.Direction.Reserve)
+        rightRearMotor = Motor(this, "右后方", 3, Motor.Direction.Forward)
+        leftDepthMotor = Motor(this, "左深度", 4, Motor.Direction.Forward)
+        rightDepthMotor = Motor(this, "右深度", 5, Motor.Direction.Forward)
         motorArray = arrayOf(
             leftFrontMotor,
             rightFrontMotor,
@@ -87,11 +83,11 @@ abstract class BaseController : EventObserver, IRobotMode {
      * 收到时回调
      */
     override fun onRead(device: BluetoothDevice, value: ByteArray) {
-        var message = ""
-        for (i in value.indices) {
-            message += "[$i]=${value[i]} "
-        }
-        debug("接收 $message")
+//        var message = ""
+//        for (i in value.indices) {
+//            message += "[$i]=${value[i]} "
+//        }
+//        debug("接收 $message")
     }
 
     /**
@@ -99,11 +95,11 @@ abstract class BaseController : EventObserver, IRobotMode {
      */
     @Observe
     override fun onWrite(device: BluetoothDevice, tag: String, value: ByteArray, result: Boolean) {
-        var message = ""
-        for (i in value.indices) {
-            message += "[$i]=${value[i]} "
-        }
-        debug("发送 $message")
+//        var message = ""
+//        for (i in value.indices) {
+//            message += "[$i]=${value[i]} "
+//        }
+//        debug("发送 $message")
     }
 
     @Synchronized
@@ -113,6 +109,15 @@ abstract class BaseController : EventObserver, IRobotMode {
             this.onRobotModeChanged(mode)
         }
         return robotMode
+    }
+
+    fun setHorizontalPower(forward: Double, rotate: Double = 0.0, translate: Double = 0.0) {
+        setSidePower(
+            forward + rotate + translate,
+            forward - rotate - translate,
+            forward + rotate - translate,
+            forward - rotate + translate
+        )
     }
 
     fun setSidePower(p0: Double, p1: Double, p2: Double, p3: Double) {

@@ -19,6 +19,7 @@ import edu.scut.submarinerobotcontroller.opmode.RobotMode
 import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
 import edu.scut.submarinerobotcontroller.tools.Vision
 import edu.scut.submarinerobotcontroller.tools.logRunOnUi
+import edu.scut.submarinerobotcontroller.tools.radToDegree
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCamera2View
 import org.opencv.android.Utils
@@ -39,6 +40,8 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     private lateinit var orientationAnglesYTextView: TextView
     private lateinit var orientationAnglesZTextView: TextView
     private lateinit var motorPowerProgressBarList: Array<ProgressBar>
+    private lateinit var degreeWithTurnTextView: TextView
+    private var lastUpdateDegreeTime = System.currentTimeMillis()
     private var commandTextList = arrayListOf<String>()
 
     private var cameraFrameWidth = 0
@@ -54,6 +57,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         Connector.updateCommand = this::updateCommand
         Connector.updateOrientationAnglesText = this::updateOrientationAnglesText
         Connector.updateOrientationAngles = this::updateOrientationAngles
+        Connector.updateDegreeWithTurn = this::updateDegreeWithTurn
         Connector.setCamera2View = this::setCamera2View
         Connector.setSignal = this::setSignal
     }
@@ -77,6 +81,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
             view.findViewById(R.id.progress_motor_4_power),
             view.findViewById(R.id.progress_motor_5_power)
         )
+        degreeWithTurnTextView = view.findViewById(R.id.degreeWithTurn)
         commandTextView = view.findViewById(R.id.text_command)
         commandScrollView = view.findViewById(R.id.scrollView_command)
 
@@ -243,7 +248,6 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
      * 更新方位角
      */
     private fun updateOrientationAngles(values: FloatArray) {
-        fun radToDegree(value: Float) = value / Math.PI * 180.0
         updateOrientationAnglesText(
             arrayListOf(
                 String.format("%.0f°", radToDegree(values[0])),
@@ -251,6 +255,17 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 String.format("%.0f°", radToDegree(values[2]))
             )
         )
+    }
+
+    private fun updateDegreeWithTurn(str: String) {
+        if (System.currentTimeMillis() - lastUpdateDegreeTime >= 200) {
+            lastUpdateDegreeTime = System.currentTimeMillis()
+            if (degreeWithTurnTextView.text != str) {
+                activity?.runOnUiThread {
+                    degreeWithTurnTextView.text = str
+                }
+            }
+        }
     }
 
     /**

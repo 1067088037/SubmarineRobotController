@@ -4,9 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.graphics.Color
 import android.hardware.*
-import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -27,19 +25,14 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import edu.scut.submarinerobotcontroller.opmode.*
-import edu.scut.submarinerobotcontroller.tools.Clock
-import edu.scut.submarinerobotcontroller.tools.debug
-import edu.scut.submarinerobotcontroller.tools.limit
-import edu.scut.submarinerobotcontroller.tools.logRunOnUi
+import edu.scut.submarinerobotcontroller.tools.*
 import edu.scut.submarinerobotcontroller.ui.main.AutoFragment
 import edu.scut.submarinerobotcontroller.ui.main.ManualFragment
 import edu.scut.submarinerobotcontroller.ui.main.SectionsPagerAdapter
 import edu.scut.submarinerobotcontroller.ui.view.NoScrollViewPager
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.system.measureTimeMillis
-import kotlin.time.measureTime
 
 class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserver,
     ViewPager.OnPageChangeListener {
@@ -57,7 +50,8 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     private val accelerometerReading = FloatArray(3)
     private val magnetometerReading = FloatArray(3)
     private val rotationMatrix = FloatArray(9)
-    private val orientationAngles = FloatArray(3)
+    private val currentOrientationAngles = FloatArray(3)
+    private var lastRequestOrientationAnglesTime = System.currentTimeMillis()
 
     private val clock = Clock()
     private var isRunning = false
@@ -165,20 +159,20 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                 //—————————————————————————————————————————————————————————————————————————————————— 不保证正确
                 orientationAngles()
                 message[4] = limit(
-                    ((orientationAngles[0].toInt() + 180) / 2 - 90).toByte(),
-                    (-90).toByte(),
-                    89.toByte()
-                )
+                    ((radToDegree(currentOrientationAngles[0]).toInt() + 180) / 2 - 90),
+                    -90,
+                    89
+                ).toByte()
                 message[5] = limit(
-                    ((orientationAngles[0].toInt() + 180) / 2 - 90).toByte(),
-                    (-90).toByte(),
-                    89.toByte()
-                )
+                    ((radToDegree(currentOrientationAngles[1]).toInt() + 180) / 2 - 90),
+                    -90,
+                    89
+                ).toByte()
                 message[6] = limit(
-                    ((orientationAngles[0].toInt() + 180) / 2 - 90).toByte(),
-                    (-90).toByte(),
-                    89.toByte()
-                )
+                    ((radToDegree(currentOrientationAngles[2]).toInt() + 180) / 2 - 90),
+                    -90,
+                    89
+                ).toByte()
                 //探头状态
                 message[7] = Constant.EmptyCode
                 message[8] = Constant.EmptyCode
@@ -219,17 +213,17 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                 //校验和
                 message[29] = kotlin.run {
                     var tmp = 0
-                    for (i in 3..10) tmp += message[i]
+                    for (i in 3..10) tmp += message[i].toInt()
                     max(Constant.MinValidCommandCode.toInt(), tmp).toByte()
                 }
                 message[30] = kotlin.run {
                     var tmp = 0
-                    for (i in 11..18) tmp += message[i]
+                    for (i in 11..18) tmp += message[i].toInt()
                     max(Constant.MinValidCommandCode.toInt(), tmp).toByte()
                 }
                 message[31] = kotlin.run {
                     var tmp = 0
-                    for (i in 19..28) tmp += message[i]
+                    for (i in 19..28) tmp += message[i].toInt()
                     max(Constant.MinValidCommandCode.toInt(), tmp).toByte()
                 }
 
@@ -242,6 +236,7 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
 
     init {
         Connector.stop = this::stop
+        Connector.getOrientationAngles = this::orientationAngles
         clock.pause()
     }
 
@@ -531,14 +526,17 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     }
 
     private fun orientationAngles(): FloatArray {
+        if (System.currentTimeMillis() - lastRequestOrientationAnglesTime <= 3)
+            return currentOrientationAngles
+        lastRequestOrientationAnglesTime = System.currentTimeMillis()
         SensorManager.getRotationMatrix(
             rotationMatrix,
             null,
             accelerometerReading,
             magnetometerReading
         )
-        SensorManager.getOrientation(rotationMatrix, orientationAngles)
-        return orientationAngles
+        SensorManager.getOrientation(rotationMatrix, currentOrientationAngles)
+        return currentOrientationAngles
     }
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {

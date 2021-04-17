@@ -24,3 +24,6 @@ fun command(string: String) {
     if (Connector.updateCommand != null)
         Connector.updateCommand!!(string)
 }
+
+//弧度制转角度制
+fun radToDegree(value: Float) = value / Math.PI * 180.0

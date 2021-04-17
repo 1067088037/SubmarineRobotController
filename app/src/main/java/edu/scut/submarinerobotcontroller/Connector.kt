@@ -1,6 +1,7 @@
 package edu.scut.submarinerobotcontroller
 
 import android.graphics.Bitmap
+import android.graphics.drawable.GradientDrawable
 import cn.wandersnail.bluetooth.Connection
 import edu.scut.submarinerobotcontroller.opmode.*
 import edu.scut.submarinerobotcontroller.tensorflow.TransferLearningModelWrapper
@@ -17,6 +18,8 @@ object Connector {
     lateinit var updateAllMotorPower: (powers: DoubleArray) -> Unit
     lateinit var updateOrientationAnglesText: (str: ArrayList<String>) -> Unit
     lateinit var updateOrientationAngles: (values: FloatArray) -> Unit
+    lateinit var updateDegreeWithTurn: (str: String) -> Unit
+    lateinit var getOrientationAngles: () -> FloatArray
     lateinit var updateMotorPowerWater: (port: Int, power: Double) -> Unit
     lateinit var setSignal: (a: Int, r: Int, g: Int, b: Int, text: String) -> Unit
     lateinit var setCamera2View: (enable: Boolean) -> Unit

@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import edu.scut.submarinerobotcontroller.Constant
 import edu.scut.submarinerobotcontroller.tools.MyColor
 import kotlin.math.abs
 import kotlin.math.min
@@ -96,7 +97,8 @@ class MotorTopView constructor(context: Context, attributeSet: AttributeSet? = n
             Shader.TileMode.MIRROR
         )
 
-        val drawText = if (drawPower > 0) "↑" else if (drawPower < 0) "↓" else ""
+        val drawText =
+            if (drawPower > Constant.MotorTopViewEps) "↑" else if (drawPower < -Constant.MotorTopViewEps) "↓" else ""
         val textPaint = Paint()
         textPaint.color = Color.WHITE
         textPaint.style = Paint.Style.FILL_AND_STROKE

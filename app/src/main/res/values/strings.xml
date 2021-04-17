@@ -67,4 +67,8 @@
     <string name="exit">退出</string>
     <string name="all_disconnect">断开全部连接</string>
     <string name="about">关于</string>
+    <string name="reset_depth_power">深度功率归零</string>
+    <string name="servo_bound">绑定伺服电机</string>
+    <string name="left_servo_text">左伺服 0</string>
+    <string name="right_servo_text">右伺服 0</string>
 </resources>

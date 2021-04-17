@@ -76,7 +76,7 @@ class MotorSideView constructor(context: Context, attributeSet: AttributeSet? = 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val motorHeightRate = 0.08f
+        val motorHeightRate = 0.12f
         val drawPower = if (motorReserve.not()) motorPower else -motorPower
 //        val drawPower = 0.5f
 
@@ -89,7 +89,7 @@ class MotorSideView constructor(context: Context, attributeSet: AttributeSet? = 
         val waterBorder = 36f
         val waterWidth = motorWidth - 12f
         val waterHeight =
-            motorHeight + (abs(drawPower) * (1 - motorHeightRate) / 2f * realHeight) / 2
+            motorHeight + (abs(drawPower) * (1 - motorHeightRate) / 2f * realHeight)
         val waterPaint = Paint()
         waterPaint.style = Paint.Style.FILL_AND_STROKE
         val motorRectPoint = floatArrayOf(
@@ -135,6 +135,6 @@ class MotorSideView constructor(context: Context, attributeSet: AttributeSet? = 
 
     init {
         OUTER_WIDTH_SIZE = dip2px(context, 40.0f)
-        OUTER_HEIGHT_SIZE = dip2px(context, 240.0f)
+        OUTER_HEIGHT_SIZE = dip2px(context, 160.0f)
     }
 }

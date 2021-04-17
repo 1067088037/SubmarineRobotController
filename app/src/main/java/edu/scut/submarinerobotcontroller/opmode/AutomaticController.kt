@@ -1,14 +1,13 @@
 package edu.scut.submarinerobotcontroller.opmode
 
+import edu.scut.submarinerobotcontroller.Connector
 import edu.scut.submarinerobotcontroller.Constant
 import edu.scut.submarinerobotcontroller.tools.command
 import edu.scut.submarinerobotcontroller.tools.debug
+import edu.scut.submarinerobotcontroller.tools.radToDegree
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
-import kotlin.math.atan
-import kotlin.math.atan2
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 class AutomaticController : BaseController() {
 
@@ -34,17 +33,48 @@ class AutomaticController : BaseController() {
         Keep, Up, Down, Unknown
     }
 
-//    interface IVisionToController {
-//        fun onPipeCatch(pipe: Mat, drawFeedback: Mat? = null)
-//    }
+    private var currentDepthPower = 0.0
 
-    data class PipePointPair(var leftX: Double, var rightX: Double, val y: Double)
+    data class NavigatePipe(
+        var centerX: Double,
+        var centerY: Double,
+        var angle: Double,
+        var width: Double
+    )
+
+    private val currentAngleX
+        get() = lastAngleX + turnNumber * 360.0
+    private var turnNumber = 1
+    private var lastAngleX = 0.0
 
     override fun run() {
-        repeat(90 * 1000) {
-//            command("在爬了" + System.currentTimeMillis())
-            if (super.robotMode(null) == RobotMode.Stop) return@repeat
-            Thread.sleep(100)
+        while (robotMode(null) != RobotMode.Stop) {
+            monitorAngles()
+            when (direction) {
+                Direction.Forward -> setHorizontalPower(forward = 0.5)
+                Direction.Right -> setHorizontalPower(forward = 0.0, rotate = 0.5)
+                Direction.Unknown -> setHorizontalPower(forward = 0.0)
+            }
+            when (diving) {
+                Diving.Up -> currentDepthPower += 0.01
+                Diving.Keep, Diving.Unknown -> currentDepthPower += 0.0
+                Diving.Down -> currentDepthPower -= 0.01
+            }
+            setTopPower(currentDepthPower)
+            Thread.sleep(20)
+        }
+        Connector.updateDegreeWithTurn("")
+    }
+
+    private fun monitorAngles() {
+        val tempAngleX = radToDegree(Connector.getOrientationAngles()[0])
+        if (abs(tempAngleX - lastAngleX) >= 180) {
+            turnNumber -= sign(tempAngleX).toInt()
+        }
+        lastAngleX = tempAngleX
+        if (robotMode(null) == RobotMode.Running) {
+            Connector.updateDegreeWithTurn("水平连续 ${String.format("%.0f", currentAngleX)}°")
+//        debug("AngleX = $currentAngleX, LastAngleX = $lastAngleX, Turn = $turnNumber")
         }
     }
 
@@ -61,7 +91,6 @@ class AutomaticController : BaseController() {
         fun getDistance(p1: Point, p2: Point): Double =
             sqrt((p1.x - p2.x).pow(2) + (p1.y - p2.y).pow(2))
 
-        val pipeArr = pipe.toArray()
         val pipe2f = MatOfPoint2f()
         pipe.convertTo(pipe2f, CvType.CV_32F)
         val minRect = Imgproc.minAreaRect(pipe2f)
@@ -134,6 +163,7 @@ class AutomaticController : BaseController() {
             drawLine(drawPoints[2], drawPoints[3])
             drawLine(drawPoints[3], drawPoints[0])
 
+            //画箭头
             Imgproc.arrowedLine(
                 drawFeedback,
                 Point(

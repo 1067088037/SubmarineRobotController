@@ -1,5 +1,7 @@
 package edu.scut.submarinerobotcontroller
 
+import edu.scut.submarinerobotcontroller.ui.view.MotorTopView
+
 object Constant {
     val NeedPermission = arrayOf(
         android.Manifest.permission.CAMERA,
@@ -26,6 +28,7 @@ object Constant {
 
     const val MotorMaxPower: Byte = 100
     const val ServoMaxPosition: Int = 180
+    const val MotorTopViewEps = 0.01
 
     const val CommandMaxLine = 50
     const val MinBlackObjArea = 10000
