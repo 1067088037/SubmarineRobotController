@@ -1,5 +1,8 @@
 package edu.scut.submarinerobotcontroller.tools
 
+import android.graphics.Bitmap
+import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
+import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 
@@ -48,6 +51,41 @@ object Vision {
         )
         contours.sortByDescending { Imgproc.contourArea(it) }
         return Pair(mask, contours)
+    }
+
+    /**
+     * 准备用于推理的信息
+     */
+    fun prepareToPredict(bitmap: Bitmap): FloatArray {
+        val rgba = Mat()
+        Utils.bitmapToMat(bitmap, rgba)
+        val hsv = Mat()
+        Imgproc.cvtColor(rgba, hsv, Imgproc.COLOR_RGB2HSV)
+        return prepareToPredict(rgba, hsv)
+    }
+
+    /**
+     * 准备用于推理的信息
+     */
+    fun prepareToPredict(rgba: Mat, hsv: Mat): FloatArray {
+        val blackMask =
+            catchByColor(hsv, Scalar(0.0, 0.0, 0.0), Scalar(180.0, 255.0, 100.0), 10, 3).first
+        val whiteArea = Mat.ones(rgba.rows(), rgba.cols(), CvType.CV_8UC1)
+        repeat(7) {
+            Core.add(whiteArea, whiteArea, whiteArea)
+        }
+        val channelsOfWhite =
+            arrayListOf(whiteArea, whiteArea, whiteArea, whiteArea)
+        Core.merge(channelsOfWhite, whiteArea)
+        val res = Mat()
+        rgba.copyTo(res, blackMask)
+        val bitmap = Bitmap.createBitmap(
+            hsv.width(),
+            hsv.height(),
+            Bitmap.Config.ARGB_8888
+        )
+        Utils.matToBitmap(res, bitmap)
+        return ImageUtils.prepareCameraImage(bitmap, 0)
     }
 
     /**

@@ -24,6 +24,7 @@ import com.google.android.material.snackbar.Snackbar
 import edu.scut.submarinerobotcontroller.Connector.tlModel
 import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
 import edu.scut.submarinerobotcontroller.tensorflow.TransferLearningModelWrapper
+import edu.scut.submarinerobotcontroller.tools.Vision
 import edu.scut.submarinerobotcontroller.tools.debug
 import edu.scut.submarinerobotcontroller.tools.logRunOnUi
 import org.opencv.android.BaseLoaderCallback
@@ -155,23 +156,23 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
         }
-        if (trainProgressBar.progress < 90) {
+        if (trainProgressBar.progress <= 99) {
             tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
             for (resId in Constant.TrainData2Array) {
                 tlModel!!.addSample(
-                    ImageUtils.prepareCameraImage(
+                    Vision.prepareToPredict(
                         BitmapFactory.decodeResource(
                             applicationContext!!.resources, resId
-                        ), 90
+                        )
                     ), "2"
                 ).get()
             }
             for (resId in Constant.TrainData4Array) {
                 tlModel!!.addSample(
-                    ImageUtils.prepareCameraImage(
+                    Vision.prepareToPredict(
                         BitmapFactory.decodeResource(
                             applicationContext!!.resources, resId
-                        ), 90
+                        )
                     ), "4"
                 ).get()
             }
@@ -471,7 +472,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         val nowProgress = targetProgress.pow(1 - (loss - Constant.TargetTrainLoss))
         val progress = nowProgress / targetProgress * 100
         runOnUiThread {
-            logRunOnUi("训练进度更新")
+            logRunOnUi("训练进度更新, loss = $loss")
             trainProgressBar.progress = max(trainProgressBar.progress, progress.toInt())
         }
 //        debug("Progress = $progress, Loss = $loss")

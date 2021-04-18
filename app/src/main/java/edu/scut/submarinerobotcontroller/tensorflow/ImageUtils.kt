@@ -8,7 +8,7 @@ object ImageUtils {
 
     private const val LOWER_BYTE_MASK = 0xFF
 
-    fun prepareCameraImage(bitmap: Bitmap, rotationDegrees: Int): FloatArray? {
+    fun prepareCameraImage(bitmap: Bitmap, rotationDegrees: Int): FloatArray {
         val modelImageSize = TransferLearningModelWrapper.IMAGE_SIZE
         val paddedBitmap: Bitmap = padToSquare(bitmap)
         val scaledBitmap = Bitmap.createScaledBitmap(

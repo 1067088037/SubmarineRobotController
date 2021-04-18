@@ -25,7 +25,6 @@ import org.opencv.android.JavaCamera2View
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -155,14 +154,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 ) //蓝线包围黑色目标物
 //                debug("面积 = ${Imgproc.contourArea(blackObject)}")
                 if (Imgproc.contourArea(blackObject) > Constant.MinBlackObjArea) {
-                    val bitmap = Bitmap.createBitmap(
-                        rgba.width(),
-                        rgba.height(),
-                        Bitmap.Config.ARGB_8888
-                    )
-                    Utils.matToBitmap(rgba, bitmap)
-//                    debug("mat: w = ${rgba.width()}, h = ${rgba.height()}, bitmap: w = ${bitmap.width}, h = ${bitmap.height}")
-                    Connector.needToBePredicted = ImageUtils.prepareCameraImage(bitmap, 0)
+                    Connector.needToBePredicted = Vision.prepareToPredict(rgba, hsv)
                 } else setSignal(text = "物体太远")
             } else setSignal(text = "没有目标")
 

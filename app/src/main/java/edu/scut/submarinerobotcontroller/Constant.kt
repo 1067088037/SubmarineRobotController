@@ -31,8 +31,10 @@ object Constant {
     const val MotorTopViewEps = 0.01
 
     const val CommandMaxLine = 50
-    const val MinBlackObjArea = 10000
-    const val TargetTrainLoss = 0.010
+    const val MinBlackObjArea = 3000
+    const val TargetTrainLoss = 0.005
+    const val NeedCoincidence = 0.85
+    const val NeedPredictTimes = 5
     const val CylinderId = "2"
     const val CubeId = "4"
 
@@ -49,7 +51,8 @@ object Constant {
         R.mipmap.bm_2_8,
         R.mipmap.bm_2_9,
         R.mipmap.bm_2_10,
-        R.mipmap.bm_2_11
+        R.mipmap.bm_2_11,
+        R.mipmap.bm_2_12
     )
 
     val TrainData4Array = arrayOf(
@@ -63,6 +66,7 @@ object Constant {
         R.mipmap.bm_4_8,
         R.mipmap.bm_4_9,
         R.mipmap.bm_4_10,
-        R.mipmap.bm_4_11
+        R.mipmap.bm_4_11,
+        R.mipmap.bm_4_12
     )
 }

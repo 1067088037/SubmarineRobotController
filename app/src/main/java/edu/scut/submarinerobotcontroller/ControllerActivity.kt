@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.graphics.Color
 import android.hardware.*
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -60,6 +61,11 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     private var lastShowTime = 0L
     private var readByteQueue: Queue<Byte> = LinkedList()
 
+    private lateinit var cylinderSound: MediaPlayer
+    private lateinit var cubeSound: MediaPlayer
+    private var cylinderTimes = 0
+    private var cubeTimes = 0
+
     private val showTimeAndPredictThread = Thread {
         Thread.currentThread().name = "控制器时间显示和推理线程"
         while (Thread.currentThread().isInterrupted.not()) {
@@ -112,23 +118,37 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                                     cubeCoincidence = it.confidence
                             }
                             if (cylinderCoincidence > cubeCoincidence) {
-                                if (cylinderCoincidence >= 0.85) Connector.setSignal(
-                                    255,
-                                    255,
-                                    0,
-                                    0,
-                                    "圆柱体"
-                                )
-                                else Connector.setSignal(64, 0, 0, 0, "置信度低")
+                                if (cylinderCoincidence >= Constant.NeedCoincidence) {
+                                    cylinderTimes++
+                                    cubeTimes = 0
+                                    if (cubeSound.isPlaying) cubeSound.stop()
+                                    if (cylinderTimes >= Constant.NeedPredictTimes) {
+                                        if (cylinderSound.isPlaying.not()) cylinderSound.start()
+                                        Connector.setSignal(
+                                            255,
+                                            255,
+                                            0,
+                                            0,
+                                            "圆柱体"
+                                        )
+                                    }
+                                } else Connector.setSignal(64, 0, 0, 0, "置信度低")
                             } else {
-                                if (cubeCoincidence >= 0.85) Connector.setSignal(
-                                    255,
-                                    0,
-                                    255,
-                                    0,
-                                    "正方体"
-                                )
-                                else Connector.setSignal(64, 0, 0, 0, "置信度低")
+                                if (cubeCoincidence >= Constant.NeedCoincidence) {
+                                    cubeTimes++
+                                    cylinderTimes = 0
+                                    if (cylinderSound.isPlaying) cylinderSound.stop()
+                                    if (cubeTimes >= Constant.NeedPredictTimes) {
+                                        if (cubeSound.isPlaying.not()) cubeSound.start()
+                                        Connector.setSignal(
+                                            255,
+                                            0,
+                                            255,
+                                            0,
+                                            "正方体"
+                                        )
+                                    }
+                                } else Connector.setSignal(64, 0, 0, 0, "置信度低")
                             }
                         } else Connector.setSignal(64, 0, 0, 0, "预测失败")
                         Connector.needToBePredicted = null
@@ -266,6 +286,11 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
         updatePing(9999)
 
         connectionThreadRunning = true
+
+        cylinderSound = MediaPlayer.create(applicationContext, R.raw.cylinder)
+        cubeSound = MediaPlayer.create(applicationContext, R.raw.cube)
+        cylinderSound.isLooping = false
+        cubeSound.isLooping = false
 
         showTimeAndPredictThread.start()
         bluetoothSendMessageThread.start()
