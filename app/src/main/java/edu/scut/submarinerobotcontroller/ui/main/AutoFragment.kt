@@ -258,7 +258,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     }
 
     private fun updateDegreeWithTurn(str: String) {
-        if (System.currentTimeMillis() - lastUpdateDegreeTime >= 200) {
+        if (System.currentTimeMillis() - lastUpdateDegreeTime >= 500) {
             lastUpdateDegreeTime = System.currentTimeMillis()
             if (degreeWithTurnTextView.text != str) {
                 activity?.runOnUiThread {

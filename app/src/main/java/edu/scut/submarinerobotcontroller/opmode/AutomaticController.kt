@@ -3,7 +3,6 @@ package edu.scut.submarinerobotcontroller.opmode
 import edu.scut.submarinerobotcontroller.Connector
 import edu.scut.submarinerobotcontroller.Constant
 import edu.scut.submarinerobotcontroller.tools.command
-import edu.scut.submarinerobotcontroller.tools.debug
 import edu.scut.submarinerobotcontroller.tools.radToDegree
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -34,10 +33,11 @@ class AutomaticController : BaseController() {
     }
 
     private var currentDepthPower = 0.0
+    private var navigatePipe: NavigatePipe = NavigatePipe(0.0, 0.0, 90.0, -1.0)
 
     data class NavigatePipe(
-        var centerX: Double,
-        var centerY: Double,
+        var offsetX: Double,
+        var offsetY: Double,
         var angle: Double,
         var width: Double
     )
@@ -46,19 +46,53 @@ class AutomaticController : BaseController() {
         get() = lastAngleX + turnNumber * 360.0
     private var turnNumber = 1
     private var lastAngleX = 0.0
+    private var currentRunningMode = Direction.Unknown
+    private var toRightTimes = 0
+    private var rotateTargetAngle = 0.0
 
     override fun run() {
         while (robotMode(null) != RobotMode.Stop) {
             monitorAngles()
-            when (direction) {
-                Direction.Forward -> setHorizontalPower(forward = 0.5)
-                Direction.Right -> setHorizontalPower(forward = 0.0, rotate = 0.5)
-                Direction.Unknown -> setHorizontalPower(forward = 0.0)
+            if (currentRunningMode != Direction.Right) {
+                when (direction) {
+                    Direction.Forward -> {
+                        toRightTimes = 0
+                        val rotatePower = (navigatePipe.angle - 90) * 0.01
+                        val translatePower = navigatePipe.offsetX * 0.001
+                        setHorizontalPower(
+                            forward = 0.8,
+                            rotate = rotatePower,
+                            translate = translatePower
+                        )
+                    }
+                    Direction.Right -> {
+                        if (toRightTimes < 10) {
+                            toRightTimes++
+                        } else {
+                            toRightTimes = 0
+                            currentRunningMode = Direction.Right
+                            rotateTargetAngle = currentAngleX + 90.0
+                            command("当前状态更改为 $currentRunningMode")
+                        }
+                    }
+                    Direction.Unknown -> {
+                        toRightTimes = 0
+                        setHorizontalPower(forward = 0.0)
+                    }
+                }
+            } else {
+                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.01
+                setHorizontalPower(forward = 0.0, rotate = rotatePower, translate = 0.0)
+                if (abs(rotateTargetAngle - currentAngleX) <= 3) {
+                    setHorizontalPower(forward = 0.0, rotate = 0.0)
+                    currentRunningMode = Direction.Forward
+                    command("当前状态更改为 $currentRunningMode")
+                }
             }
             when (diving) {
-                Diving.Up -> currentDepthPower += 0.01
+                Diving.Up -> currentDepthPower += 0.015
                 Diving.Keep, Diving.Unknown -> currentDepthPower += 0.0
-                Diving.Down -> currentDepthPower -= 0.01
+                Diving.Down -> currentDepthPower -= 0.015
             }
             setTopPower(currentDepthPower)
             Thread.sleep(20)
@@ -158,6 +192,13 @@ class AutomaticController : BaseController() {
 //        command("Depth = $distance")
 
         if (drawFeedback != null) {
+            navigatePipe = NavigatePipe(
+                minRect.center.x - drawFeedback.cols() / 2.0,
+                minRect.center.y - drawFeedback.rows() / 2.0,
+                angle2,
+                distance
+            )
+
             drawLine(drawPoints[0], drawPoints[1])
             drawLine(drawPoints[1], drawPoints[2])
             drawLine(drawPoints[2], drawPoints[3])
@@ -172,27 +213,35 @@ class AutomaticController : BaseController() {
                 ), Point(
                     topAveragePoint.x - (topAveragePoint.x - bottomAveragePoint.x) / 4,
                     topAveragePoint.y - (topAveragePoint.y - bottomAveragePoint.y) / 4
-                ), Scalar(255.0, 0.0, 0.0), 10
+                ), Scalar(255.0, 0.0, 0.0), 5
             )
 
             val upPoint =
                 Point(drawFeedback.rows() / 6.0, drawFeedback.cols() / 3.0)
             val downPoint =
                 Point(drawFeedback.rows() / 6.0, drawFeedback.cols() * 2 / 3.0)
+            if (currentRunningMode == Direction.Right) {
+                Imgproc.arrowedLine(
+                    drawFeedback,
+                    Point(drawFeedback.rows() * 1 / 4.0, drawFeedback.cols() / 10.0),
+                    Point(drawFeedback.rows() * 3 / 4.0, drawFeedback.cols() / 10.0),
+                    Scalar(255.0, 0.0, 0.0), 20
+                )
+            }
             when (diving) {
                 Diving.Up -> Imgproc.arrowedLine(
                     drawFeedback,
                     downPoint,
                     upPoint,
                     Scalar(64.0, 255.0, 192.0),
-                    12
+                    10
                 )
                 Diving.Down -> Imgproc.arrowedLine(
                     drawFeedback,
                     upPoint,
                     downPoint,
                     Scalar(64.0, 255.0, 192.0),
-                    12
+                    10
                 )
                 else -> {
                 }

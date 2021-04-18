@@ -33,9 +33,9 @@ abstract class BaseController : EventObserver, IRobotMode {
     private fun onInit() {
         Connector.mainController = this
 
-        leftFrontMotor = Motor(this, "左前方", 0, Motor.Direction.Reserve)
+        leftFrontMotor = Motor(this, "左前方", 0, Motor.Direction.Forward)
         rightFrontMotor = Motor(this, "右前方", 1, Motor.Direction.Forward)
-        leftRearMotor = Motor(this, "左后方", 2, Motor.Direction.Reserve)
+        leftRearMotor = Motor(this, "左后方", 2, Motor.Direction.Forward)
         rightRearMotor = Motor(this, "右后方", 3, Motor.Direction.Forward)
         leftDepthMotor = Motor(this, "左深度", 4, Motor.Direction.Forward)
         rightDepthMotor = Motor(this, "右深度", 5, Motor.Direction.Forward)
