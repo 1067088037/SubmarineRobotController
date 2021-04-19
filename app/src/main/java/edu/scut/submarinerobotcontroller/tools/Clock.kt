@@ -15,6 +15,7 @@ class Clock {
     }
 
     fun reset() {
+        pause()
         startTime = System.nanoTime()
         pauseAllTime = 0L
     }

@@ -274,23 +274,21 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                     "$string\n"
         )
         if (this::commandTextView.isInitialized) {
+            var temp = ""
+            val tempArray = commandTextList.toArray()
+            if (tempArray.size <= Constant.CommandMaxLine) {
+                for (i in tempArray) {
+                    temp += i
+                }
+            } else {
+                temp = "${tempArray.size - Constant.CommandMaxLine}条命令被折叠\n"
+                for (i in tempArray.size - Constant.CommandMaxLine until tempArray.size) {
+                    temp += tempArray[i]
+                }
+            }
             activity?.runOnUiThread {
                 logRunOnUi("更新指令")
-                commandTextView.text = kotlin.run {
-                    var temp = ""
-                    val tempArray = commandTextList.toArray()
-                    if (tempArray.size <= Constant.CommandMaxLine) {
-                        tempArray.forEach { // TODO: 2021/4/6
-                            temp += it
-                        }
-                    } else {
-                        temp = "${tempArray.size - Constant.CommandMaxLine}条命令被折叠\n"
-                        for (i in tempArray.size - Constant.CommandMaxLine until tempArray.size) {
-                            temp += tempArray[i]
-                        }
-                    }
-                    temp
-                }
+                commandTextView.text = temp
                 commandScrollView.post { commandScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
             }
         }

@@ -4,7 +4,9 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -156,28 +158,57 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         } else {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
         }
-        if (trainProgressBar.progress <= 99) {
-            tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
-            for (resId in Constant.TrainData2Array) {
-                tlModel!!.addSample(
-                    Vision.prepareToPredict(
-                        BitmapFactory.decodeResource(
-                            applicationContext!!.resources, resId
-                        )
-                    ), "2"
-                ).get()
+        Thread {
+            if (trainProgressBar.progress <= 99) {
+                tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
+                val numberOfSamples = Constant.TrainData2Array.size + Constant.TrainData4Array.size
+                var addedSamples = 0
+                runOnUiThread {
+                    trainProgressBar.progressTintList =
+                        ColorStateList.valueOf(Color.rgb(98, 0, 238))
+                }
+                for (i in Constant.TrainData2Array.indices) {
+                    debug("添加样本 #2 i = $i")
+                    val resId = Constant.TrainData2Array[i]
+                    tlModel!!.addSample(
+                        Vision.prepareToPredict(
+                            BitmapFactory.decodeResource(
+                                applicationContext!!.resources, resId
+                            )
+                        ), "2"
+                    ).get()
+                    addedSamples++
+                    runOnUiThread {
+                        trainProgressBar.progress =
+                            ((addedSamples.toDouble() / numberOfSamples.toDouble()) * 100.0).toInt()
+                    }
+                }
+                for (i in Constant.TrainData4Array.indices) {
+                    debug("添加样本 #4 i = $i")
+                    val resId = Constant.TrainData4Array[i]
+                    tlModel!!.addSample(
+                        Vision.prepareToPredict(
+                            BitmapFactory.decodeResource(
+                                applicationContext!!.resources, resId
+                            )
+                        ), "4"
+                    ).get()
+                    addedSamples++
+                    runOnUiThread {
+                        trainProgressBar.progress =
+                            ((addedSamples.toDouble() / numberOfSamples.toDouble()) * 100.0).toInt()
+                    }
+                }
+                runOnUiThread {
+                    trainProgressBar.progress = 0
+                    trainProgressBar.progressTintList =
+                        ColorStateList.valueOf(Color.rgb(3, 218, 197))
+                }
+                tlModel!!.enableTraining(this)
+            } else runOnUiThread {
+                startControllerActivityBtn.isEnabled = true
             }
-            for (resId in Constant.TrainData4Array) {
-                tlModel!!.addSample(
-                    Vision.prepareToPredict(
-                        BitmapFactory.decodeResource(
-                            applicationContext!!.resources, resId
-                        )
-                    ), "4"
-                ).get()
-            }
-            tlModel!!.enableTraining(this)
-        } else startControllerActivityBtn.isEnabled = true
+        }.start()
     }
 
     override fun onDestroy() {

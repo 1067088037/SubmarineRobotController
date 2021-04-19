@@ -2,7 +2,9 @@ package edu.scut.submarinerobotcontroller.opmode
 
 import edu.scut.submarinerobotcontroller.Connector
 import edu.scut.submarinerobotcontroller.Constant
+import edu.scut.submarinerobotcontroller.tools.Clock
 import edu.scut.submarinerobotcontroller.tools.command
+import edu.scut.submarinerobotcontroller.tools.debug
 import edu.scut.submarinerobotcontroller.tools.radToDegree
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
@@ -42,6 +44,7 @@ class AutomaticController : BaseController() {
         var width: Double
     )
 
+    private val clock = Clock()
     private val currentAngleX
         get() = lastAngleX + turnNumber * 360.0
     private var turnNumber = 1
@@ -51,28 +54,32 @@ class AutomaticController : BaseController() {
     private var rotateTargetAngle = 0.0
 
     override fun run() {
+        clock.reset()
+        clock.start()
         while (robotMode(null) != RobotMode.Stop) {
             monitorAngles()
             if (currentRunningMode != Direction.Right) {
                 when (direction) {
                     Direction.Forward -> {
                         toRightTimes = 0
-                        val rotatePower = (navigatePipe.angle - 90) * 0.01
-                        val translatePower = navigatePipe.offsetX * 0.001
+                        val rotatePower = (navigatePipe.angle - 90) * 0.005
+                        val translatePower = navigatePipe.offsetX * 0.0005
                         setHorizontalPower(
-                            forward = 0.8,
+                            forward = 0.5,
                             rotate = rotatePower,
                             translate = translatePower
                         )
                     }
                     Direction.Right -> {
-                        if (toRightTimes < 10) {
-                            toRightTimes++
-                        } else {
-                            toRightTimes = 0
-                            currentRunningMode = Direction.Right
-                            rotateTargetAngle = currentAngleX + 90.0
-                            command("当前状态更改为 $currentRunningMode")
+                        if (clock.getMillSeconds() >= 5000) {
+                            if (toRightTimes < 10) {
+                                toRightTimes++
+                            } else {
+                                toRightTimes = 0
+                                currentRunningMode = Direction.Right
+                                rotateTargetAngle = currentAngleX + 90.0
+                                command("当前状态更改为 $currentRunningMode")
+                            }
                         }
                     }
                     Direction.Unknown -> {
@@ -81,7 +88,7 @@ class AutomaticController : BaseController() {
                     }
                 }
             } else {
-                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.01
+                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.005
                 setHorizontalPower(forward = 0.0, rotate = rotatePower, translate = 0.0)
                 if (abs(rotateTargetAngle - currentAngleX) <= 3) {
                     setHorizontalPower(forward = 0.0, rotate = 0.0)
@@ -90,9 +97,9 @@ class AutomaticController : BaseController() {
                 }
             }
             when (diving) {
-                Diving.Up -> currentDepthPower += 0.015
+                Diving.Up -> currentDepthPower += 0.010
                 Diving.Keep, Diving.Unknown -> currentDepthPower += 0.0
-                Diving.Down -> currentDepthPower -= 0.015
+                Diving.Down -> currentDepthPower -= 0.010
             }
             setTopPower(currentDepthPower)
             Thread.sleep(20)
