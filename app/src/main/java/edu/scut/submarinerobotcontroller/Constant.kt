@@ -32,9 +32,9 @@ object Constant {
 
     const val CommandMaxLine = 40
     const val MinBlackObjArea = 3000
-    const val TargetTrainLoss = 0.002
+    const val TargetTrainLoss = 0.005
     const val NeedCoincidence = 0.88
-    const val NeedPredictTimes = 4
+    const val NeedPredictTimes = 5
     const val CylinderId = "2"
     const val CubeId = "4"
 

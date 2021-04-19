@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
@@ -24,7 +25,6 @@ import cn.wandersnail.commons.poster.Tag
 import cn.wandersnail.commons.poster.ThreadMode
 import com.google.android.material.snackbar.Snackbar
 import edu.scut.submarinerobotcontroller.Connector.tlModel
-import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
 import edu.scut.submarinerobotcontroller.tensorflow.TransferLearningModelWrapper
 import edu.scut.submarinerobotcontroller.tools.Vision
 import edu.scut.submarinerobotcontroller.tools.debug
@@ -33,6 +33,7 @@ import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import org.tensorflow.lite.examples.transfer.api.TransferLearningModel
+import java.util.*
 import kotlin.math.*
 import kotlin.system.exitProcess
 
@@ -55,6 +56,8 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
     private var emergencyStopDiscovery = false
 
     private val deviceList = arrayListOf<BluetoothDevice>()
+    private val trainingList: Queue<Pair<String, Bitmap>> = LinkedList()
+    private var preparedSamples = 0
 
     private var discoveryListener = object : DiscoveryListener {
         private var stDiscoveryTime = System.currentTimeMillis()
@@ -161,50 +164,56 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         Thread {
             if (trainProgressBar.progress <= 99) {
                 tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
-                val numberOfSamples = Constant.TrainData2Array.size + Constant.TrainData4Array.size
-                var addedSamples = 0
                 runOnUiThread {
                     trainProgressBar.progressTintList =
                         ColorStateList.valueOf(Color.rgb(98, 0, 238))
                 }
-                for (i in Constant.TrainData2Array.indices) {
-                    debug("添加样本 #2 i = $i")
-                    val resId = Constant.TrainData2Array[i]
-                    tlModel!!.addSample(
-                        Vision.prepareToPredict(
+                for (i in Constant.TrainData2Array) {
+                    trainingList.offer(
+                        Pair(
+                            "2",
                             BitmapFactory.decodeResource(
-                                applicationContext!!.resources, resId
+                                applicationContext!!.resources, i
                             )
-                        ), "2"
-                    ).get()
-                    addedSamples++
-                    runOnUiThread {
-                        trainProgressBar.progress =
-                            ((addedSamples.toDouble() / numberOfSamples.toDouble()) * 100.0).toInt()
-                    }
+                        )
+                    )
                 }
-                for (i in Constant.TrainData4Array.indices) {
-                    debug("添加样本 #4 i = $i")
-                    val resId = Constant.TrainData4Array[i]
-                    tlModel!!.addSample(
-                        Vision.prepareToPredict(
+                for (i in Constant.TrainData4Array) {
+                    trainingList.offer(
+                        Pair(
+                            "4",
                             BitmapFactory.decodeResource(
-                                applicationContext!!.resources, resId
+                                applicationContext!!.resources, i
                             )
-                        ), "4"
-                    ).get()
-                    addedSamples++
-                    runOnUiThread {
-                        trainProgressBar.progress =
-                            ((addedSamples.toDouble() / numberOfSamples.toDouble()) * 100.0).toInt()
-                    }
+                        )
+                    )
                 }
-                runOnUiThread {
-                    trainProgressBar.progress = 0
-                    trainProgressBar.progressTintList =
-                        ColorStateList.valueOf(Color.rgb(3, 218, 197))
+                repeat(8) {
+                    Thread {
+                        while (trainingList.isNotEmpty()) {
+                            val trainingObj = trainingList.peek()
+                            trainingList.poll()
+                            if (trainingObj != null) {
+                                tlModel!!.addSample(
+                                    Vision.prepareToPredict(
+                                        trainingObj.second
+                                    ), trainingObj.first
+                                ).get()
+                            }
+                            preparedSamples++
+                            runOnUiThread {
+                                trainProgressBar.progress =
+                                    ((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt()
+                            }
+                        }
+                        val color = ColorStateList.valueOf(Color.rgb(3, 218, 197))
+                        runOnUiThread {
+                            trainProgressBar.progress = 0
+                            trainProgressBar.progressTintList = color
+                        }
+                        tlModel!!.enableTraining(this)
+                    }.start()
                 }
-                tlModel!!.enableTraining(this)
             } else runOnUiThread {
                 startControllerActivityBtn.isEnabled = true
             }
