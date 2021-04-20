@@ -68,23 +68,24 @@ object Vision {
      * 准备用于推理的信息
      */
     fun prepareToPredict(rgba: Mat, hsv: Mat): FloatArray {
-        val blackMask =
-            catchByColor(hsv, Scalar(0.0, 0.0, 0.0), Scalar(180.0, 255.0, 100.0), 10, 3).first
-        val whiteArea = Mat.ones(rgba.rows(), rgba.cols(), CvType.CV_8UC1)
-        repeat(7) {
-            Core.add(whiteArea, whiteArea, whiteArea)
-        }
-        val channelsOfWhite =
-            arrayListOf(whiteArea, whiteArea, whiteArea, whiteArea)
-        Core.merge(channelsOfWhite, whiteArea)
-        val res = Mat()
-        rgba.copyTo(res, blackMask)
+//        val blackMask =
+//            catchByColor(hsv, Scalar(0.0, 0.0, 0.0), Scalar(180.0, 255.0, 100.0), 10, 3).first
+//        val whiteArea = Mat.ones(rgba.rows(), rgba.cols(), CvType.CV_8UC1)
+//        repeat(7) {
+//            Core.add(whiteArea, whiteArea, whiteArea)
+//        }
+//        val channelsOfWhite =
+//            arrayListOf(whiteArea, whiteArea, whiteArea, whiteArea)
+//        Core.merge(channelsOfWhite, whiteArea)
+//        val res = Mat()
+//        rgba.copyTo(res, blackMask)
         val bitmap = Bitmap.createBitmap(
             hsv.width(),
             hsv.height(),
             Bitmap.Config.ARGB_8888
         )
-        Utils.matToBitmap(res, bitmap)
+//        Utils.matToBitmap(res, bitmap)
+        Utils.matToBitmap(rgba, bitmap)
         return ImageUtils.prepareCameraImage(bitmap, 0)
     }
 

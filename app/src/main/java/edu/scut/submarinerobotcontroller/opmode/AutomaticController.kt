@@ -2,10 +2,7 @@ package edu.scut.submarinerobotcontroller.opmode
 
 import edu.scut.submarinerobotcontroller.Connector
 import edu.scut.submarinerobotcontroller.Constant
-import edu.scut.submarinerobotcontroller.tools.Clock
-import edu.scut.submarinerobotcontroller.tools.command
-import edu.scut.submarinerobotcontroller.tools.debug
-import edu.scut.submarinerobotcontroller.tools.radToDegree
+import edu.scut.submarinerobotcontroller.tools.*
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.math.*
@@ -44,7 +41,6 @@ class AutomaticController : BaseController() {
         var width: Double
     )
 
-    private val clock = Clock()
     private val currentAngleX
         get() = lastAngleX + turnNumber * 360.0
     private var turnNumber = 1
@@ -54,6 +50,7 @@ class AutomaticController : BaseController() {
     private var rotateTargetAngle = 0.0
 
     override fun run() {
+        val clock = Clock()
         clock.reset()
         clock.start()
         while (robotMode(null) != RobotMode.Stop) {
@@ -101,6 +98,7 @@ class AutomaticController : BaseController() {
                 Diving.Keep, Diving.Unknown -> currentDepthPower += 0.0
                 Diving.Down -> currentDepthPower -= 0.010
             }
+            currentDepthPower = limit(currentDepthPower, -1.0, 1.0)
             setTopPower(currentDepthPower)
             Thread.sleep(20)
         }

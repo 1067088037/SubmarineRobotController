@@ -18,6 +18,7 @@ import edu.scut.submarinerobotcontroller.opmode.AutomaticController
 import edu.scut.submarinerobotcontroller.opmode.RobotMode
 import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
 import edu.scut.submarinerobotcontroller.tools.Vision
+import edu.scut.submarinerobotcontroller.tools.debug
 import edu.scut.submarinerobotcontroller.tools.logRunOnUi
 import edu.scut.submarinerobotcontroller.tools.radToDegree
 import org.opencv.android.CameraBridgeViewBase
@@ -42,6 +43,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     private lateinit var degreeWithTurnTextView: TextView
     private var lastUpdateDegreeTime = System.currentTimeMillis()
     private var commandTextList = arrayListOf<String>()
+    private var foldCommandTextNumber = 0
 
     private var cameraFrameWidth = 0
     private var cameraFrameHeight = 0
@@ -52,7 +54,6 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     init {
         //将Fragment内部方法放到Connector
         Connector.updateMotorPower = this::updateMotorPower
-        Connector.updateAllMotorPower = this::updateAllMotorPower
         Connector.updateCommand = this::updateCommand
         Connector.updateOrientationAnglesText = this::updateOrientationAnglesText
         Connector.updateOrientationAngles = this::updateOrientationAngles
@@ -190,26 +191,19 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         }
     }
 
-    private fun updateMotorPower(port: Int, power: Double) {
-        if (motorPowerProgressBarList[port].progress != abs(power * 100.0).toInt()) {
+    private fun updateMotorPower(power: Array<Pair<Int, Double>>) {
+        logRunOnUi("自动界面 更新马达功率")
+        if (activity != null) {
+            val green = activity!!.getColor(R.color.positive_green)
+            val red = Color.rgb(221, 0, 0)
             activity?.runOnUiThread {
-                logRunOnUi("更新马达功率")
-                motorPowerProgressBarList[port].progress = abs(power * 100.0).toInt()
-                motorPowerProgressBarList[port].progressTintList = ColorStateList.valueOf(
-                    if (power >= 0) activity?.getColor(R.color.positive_green) ?: 0
-                    else activity?.getColor(R.color.negative_red) ?: 0
-                )
+                for (i in power) {
+                    motorPowerProgressBarList[i.first].progress = abs(i.second * 100.0).toInt()
+                    val color = if (i.second >= 0) green else red
+                    motorPowerProgressBarList[i.first].progressTintList =
+                        ColorStateList.valueOf(color)
+                }
             }
-        }
-    }
-
-    private fun updateAllMotorPower(powers: DoubleArray) {
-        if (powers.size != 6) {
-            updateCommand("电机功率更新异常，数目不是6个")
-            return
-        }
-        for (i in 0..5) {
-            updateMotorPower(i, powers[i])
         }
     }
 
@@ -267,24 +261,22 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     private fun updateCommand(string: String) {
         val calendar = Calendar.getInstance()
         commandTextList.add(
-            "${String.format("%02d", calendar.get(Calendar.HOUR))}:" +
+            "${String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY))}:" +
                     "${String.format("%02d", calendar.get(Calendar.MINUTE))}:" +
                     "${String.format("%02d", calendar.get(Calendar.SECOND))}:" +
                     "${String.format("%03d", calendar.get(Calendar.MILLISECOND))}:\t " +
                     "$string\n"
         )
+        if (commandTextList.size > Constant.CommandMaxLine) {
+            commandTextList.removeAt(0)
+            foldCommandTextNumber++
+        }
+        debug("Line = ${commandTextList.size}")
         if (this::commandTextView.isInitialized) {
-            var temp = ""
             val tempArray = commandTextList.toArray()
-            if (tempArray.size <= Constant.CommandMaxLine) {
-                for (i in tempArray) {
-                    temp += i
-                }
-            } else {
-                temp = "${tempArray.size - Constant.CommandMaxLine}条命令被折叠\n"
-                for (i in tempArray.size - Constant.CommandMaxLine until tempArray.size) {
-                    temp += tempArray[i]
-                }
+            var temp = "${foldCommandTextNumber}条命令被折叠\n"
+            for (i in tempArray) {
+                temp += i
             }
             activity?.runOnUiThread {
                 logRunOnUi("更新指令")

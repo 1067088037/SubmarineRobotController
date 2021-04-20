@@ -34,6 +34,7 @@ import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import org.tensorflow.lite.examples.transfer.api.TransferLearningModel
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.*
 import kotlin.system.exitProcess
 
@@ -188,31 +189,43 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
                         )
                     )
                 }
-                repeat(8) {
-                    Thread {
-                        while (trainingList.isNotEmpty()) {
-                            val trainingObj = trainingList.peek()
-                            trainingList.poll()
-                            if (trainingObj != null) {
-                                tlModel!!.addSample(
-                                    Vision.prepareToPredict(
-                                        trainingObj.second
-                                    ), trainingObj.first
-                                ).get()
-                            }
-                            preparedSamples++
-                            runOnUiThread {
-                                trainProgressBar.progress =
-                                    ((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt()
-                            }
+                val addSampleRunnable = kotlinx.coroutines.Runnable {
+                    while (trainingList.isNotEmpty()) {
+                        val trainingObj = trainingList.peek()
+                        trainingList.poll()
+                        if (trainingObj != null) {
+                            tlModel!!.addSample(
+                                Vision.prepareToPredict(
+                                    trainingObj.second
+                                ), trainingObj.first
+                            ).get()
                         }
-                        val color = ColorStateList.valueOf(Color.rgb(3, 218, 197))
+                        preparedSamples++
                         runOnUiThread {
-                            trainProgressBar.progress = 0
-                            trainProgressBar.progressTintList = color
+                            trainProgressBar.progress =
+                                ((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt()
                         }
-                        tlModel!!.enableTraining(this)
-                    }.start()
+                    }
+                }
+                val threadList = Array(8) {
+                    Thread {
+                        addSampleRunnable.run()
+                    }
+                }
+                for (i in threadList) {
+                    i.start()
+                }
+                thread {
+                    addSampleRunnable.run()
+                    while (threadList.find { it.isAlive } != null) {
+                        Thread.sleep(1)
+                    }
+                    val color = ColorStateList.valueOf(Color.rgb(3, 218, 197))
+                    runOnUiThread {
+                        trainProgressBar.progress = 0
+                        trainProgressBar.progressTintList = color
+                    }
+                    tlModel!!.enableTraining(this)
                 }
             } else runOnUiThread {
                 startControllerActivityBtn.isEnabled = true

@@ -65,8 +65,9 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     private lateinit var cubeSound: MediaPlayer
     private var cylinderTimes = 0
     private var cubeTimes = 0
+    private var lastRunOnUiTime = System.currentTimeMillis()
 
-    private val showTimeAndPredictThread = Thread {
+    private val updateUIAndPredictThread = Thread {
         Thread.currentThread().name = "控制器时间显示和推理线程"
         while (Thread.currentThread().isInterrupted.not()) {
             val connection = Connector.bluetoothConnection
@@ -82,27 +83,43 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                         else -> "未知"
                     }
                 }" else "蓝牙连接断开"
-            if (title != controllerTitleTextView.text) {
-                runOnUiThread {
-                    controllerTitleTextView.text = title
-                }
+            if (title != controllerTitleTextView.text) runOnUiThread {
+                controllerTitleTextView.text = title
             }
             if (clock.getMillSeconds() != 0L) {
                 while (isRunning(false)) {
+                    if (System.currentTimeMillis() - lastRunOnUiTime >= 30) {
+                        debug("控制器更新UI")
+                        runOnUiThread {
+                            if (clock.getSeconds() != lastShowTime) {
+                                logRunOnUi("更新时间")
+                                val runningTimeText =
+                                    "${getString(R.string.running_time)}\n${clock.getSeconds()} 秒"
+                                runningTime.text = runningTimeText
+                                lastShowTime = clock.getSeconds()
+                            }
+                            if (robotController != null) {
+                                if (robotController is AutomaticController) {
+                                    val powerList = Array(6) { Pair(-1, -1.0) }
+                                    for ((i, value) in robotController!!.motorArray.withIndex()) {
+                                        powerList[i] = Pair(i, value.power)
+                                    }
+                                    Connector.updateMotorPower(powerList)
+                                } else if (robotController is ManualController) {
+                                    val powerList = Array(6) { Pair(-1, -1.0) }
+                                    for ((i, value) in robotController!!.motorArray.withIndex()) {
+                                        powerList[i] = Pair(i, value.power)
+                                    }
+                                    Connector.updateMotorPowerWater(powerList)
+                                }
+                            }
+                        }
+                        lastRunOnUiTime = System.currentTimeMillis()
+                    }
 //                debug("我的线程数 = $threadCount， 总线程数 = ${Thread.activeCount()}")
                     if (Connector.robotControllerMode == RobotControllerMode.Automatic)
                         Connector.updateOrientationAngles(orientationAngles())
 //                Connector.updateCommand(" when ${clock.getMillSeconds()} ms")
-                    if (clock.getSeconds() != lastShowTime) {
-                        runOnUiThread {
-                            logRunOnUi("更新时间")
-                            val runningTimeText =
-                                "${getString(R.string.running_time)}\n${clock.getSeconds()} 秒"
-                            runningTime.text = runningTimeText
-                        }
-                        lastShowTime = clock.getSeconds()
-                    }
-
                     //推理部分
                     if (Connector.needToBePredicted != null) {
 //                    debug("推理开始")
@@ -153,7 +170,7 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                         } else Connector.setSignal(64, 0, 0, 0, "预测失败")
                         Connector.needToBePredicted = null
                     } else {
-                        repeat(100) {
+                        repeat(10) {
                             Thread.sleep(1)
                             if (isRunning(false).not()) return@repeat
                         }
@@ -292,7 +309,7 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
         cylinderSound.isLooping = false
         cubeSound.isLooping = false
 
-        showTimeAndPredictThread.start()
+        updateUIAndPredictThread.start()
         bluetoothSendMessageThread.start()
     }
 

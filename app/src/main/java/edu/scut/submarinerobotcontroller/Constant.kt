@@ -30,7 +30,7 @@ object Constant {
     const val ServoMaxPosition: Int = 180
     const val MotorTopViewEps = 0.01
 
-    const val CommandMaxLine = 40
+    const val CommandMaxLine = 30
     const val MinBlackObjArea = 3000
     const val TargetTrainLoss = 0.005
     const val NeedCoincidence = 0.88

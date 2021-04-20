@@ -14,13 +14,12 @@ import java.lang.Exception
  * 非UI类与UI类交互内容
  */
 object Connector {
-    lateinit var updateMotorPower: (port: Int, power: Double) -> Unit
-    lateinit var updateAllMotorPower: (powers: DoubleArray) -> Unit
+    lateinit var updateMotorPower: (Array<Pair<Int, Double>>) -> Unit
+    lateinit var updateMotorPowerWater: (power: Array<Pair<Int, Double>>) -> Unit
     lateinit var updateOrientationAnglesText: (str: ArrayList<String>) -> Unit
     lateinit var updateOrientationAngles: (values: FloatArray) -> Unit
     lateinit var updateDegreeWithTurn: (str: String) -> Unit
     lateinit var getOrientationAngles: () -> FloatArray
-    lateinit var updateMotorPowerWater: (port: Int, power: Double) -> Unit
     lateinit var setSignal: (a: Int, r: Int, g: Int, b: Int, text: String) -> Unit
     lateinit var setCamera2View: (enable: Boolean) -> Unit
     lateinit var stop: (stopMode: StopMode) -> Unit

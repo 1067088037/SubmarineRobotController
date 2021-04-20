@@ -1,5 +1,6 @@
 package edu.scut.submarinerobotcontroller.ui.main
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -129,17 +130,18 @@ class ManualFragment : Fragment() {
         return view
     }
 
-    private fun updateMotorPowerWater(port: Int, power: Double) {
-        if (motorSide.size != 4 || motorTop.size != 2) return
-        if (port in 0..3) {
-            motorSide[port].motorPower = power.toFloat()
-        }
-        if (port in 4..5) {
-            motorTop[port - 4].motorPower = power.toFloat()
-            if (depthPowerText.text != (power * 100.0).toInt().toString()) {
-                activity?.runOnUiThread {
-                    logRunOnUi("更新深度功率")
-                    depthPowerText.text = (power * 100.0).toInt().toString()
+    private fun updateMotorPowerWater(power: Array<Pair<Int, Double>>) {
+        logRunOnUi("手动界面 更新马达功率")
+        activity?.runOnUiThread {
+            for ((port, motorPower) in power) {
+                if (port in 0..3) {
+                    motorSide[port].motorPower = motorPower.toFloat()
+                }
+                if (port in 4..5) {
+                    motorTop[port - 4].motorPower = motorPower.toFloat()
+                    if (depthPowerText.text != (motorPower * 100.0).toInt().toString()) {
+                        depthPowerText.text = (motorPower * 100.0).toInt().toString()
+                    }
                 }
             }
         }
