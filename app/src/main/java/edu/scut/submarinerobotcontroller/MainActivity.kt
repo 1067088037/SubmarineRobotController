@@ -18,6 +18,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
 import cn.wandersnail.bluetooth.*
 import cn.wandersnail.commons.observer.Observe
 import cn.wandersnail.commons.poster.RunOn
@@ -25,10 +27,12 @@ import cn.wandersnail.commons.poster.Tag
 import cn.wandersnail.commons.poster.ThreadMode
 import com.google.android.material.snackbar.Snackbar
 import edu.scut.submarinerobotcontroller.Connector.tlModel
+import edu.scut.submarinerobotcontroller.databinding.ActivityMainBinding
 import edu.scut.submarinerobotcontroller.tensorflow.TransferLearningModelWrapper
 import edu.scut.submarinerobotcontroller.tools.Vision
 import edu.scut.submarinerobotcontroller.tools.debug
 import edu.scut.submarinerobotcontroller.tools.logRunOnUi
+import edu.scut.submarinerobotcontroller.ui.viewmodel.MainViewModel
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
@@ -39,6 +43,9 @@ import kotlin.math.*
 import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.LossConsumer {
+
+    private lateinit var viewModel: MainViewModel
+    private lateinit var dataBinding: ActivityMainBinding
 
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var bluetoothWorkingProgress: ProgressBar
@@ -138,7 +145,11 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+//        setContentView(R.layout.activity_main)
+        dataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        dataBinding.data = viewModel
+        dataBinding.lifecycleOwner = this
 
         coordinatorLayout = findViewById(R.id.main_coordinatorlayout)
         bluetoothWorkingProgress = findViewById(R.id.bluetooth_working)
@@ -147,6 +158,10 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         startControllerActivityBtn = findViewById(R.id.btn_start_control_activity)
         bluetoothStateTextView = findViewById(R.id.bluetooth_state)
         bluetoothStateTextView.text = "蓝牙连接中断"
+
+        viewModel.trainingProgressColor.observe(this, androidx.lifecycle.Observer {
+            dataBinding.trainProgress.progressTintList = ColorStateList.valueOf(it)
+        })
 
         requestPermission()
 
@@ -165,10 +180,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         Thread {
             if (trainProgressBar.progress <= 99) {
                 tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
-                runOnUiThread {
-                    trainProgressBar.progressTintList =
-                        ColorStateList.valueOf(Color.rgb(98, 0, 238))
-                }
+                viewModel.trainingProgressColor.postValue(Color.rgb(98, 0, 238))
                 for (i in Constant.TrainData2Array) {
                     trainingList.offer(
                         Pair(
@@ -201,10 +213,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
                             ).get()
                         }
                         preparedSamples++
-                        runOnUiThread {
-                            trainProgressBar.progress =
-                                ((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt()
-                        }
+                        viewModel.trainingProgress.postValue(((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt())
                     }
                 }
                 val threadList = Array(8) {
@@ -220,16 +229,11 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
                     while (threadList.find { it.isAlive } != null) {
                         Thread.sleep(1)
                     }
-                    val color = ColorStateList.valueOf(Color.rgb(3, 218, 197))
-                    runOnUiThread {
-                        trainProgressBar.progress = 0
-                        trainProgressBar.progressTintList = color
-                    }
+                    viewModel.trainingProgress.postValue(0)
+                    viewModel.trainingProgressColor.postValue(Color.rgb(3, 218, 197))
                     tlModel!!.enableTraining(this)
                 }
-            } else runOnUiThread {
-                startControllerActivityBtn.isEnabled = true
-            }
+            } else viewModel.startControllerActivityBtnEnable.postValue(true)
         }.start()
     }
 
@@ -515,26 +519,17 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
      * 蓝牙工作条是否显示
      */
     private fun isShowBluetoothWorking(show: Boolean) {
-        runOnUiThread {
-            logRunOnUi("进度条更改可见性")
-            bluetoothWorkingProgress.visibility = if (show) View.VISIBLE else View.INVISIBLE
-        }
+        viewModel.bluetoothWorkingProgressVisibility.postValue(if (show) View.VISIBLE else View.INVISIBLE)
     }
 
     override fun onLoss(epoch: Int, loss: Float) {
         val nowProgress = targetProgress.pow(1 - (loss - Constant.TargetTrainLoss))
         val progress = nowProgress / targetProgress * 100
-        runOnUiThread {
-            logRunOnUi("训练进度更新, loss = $loss")
-            trainProgressBar.progress = max(trainProgressBar.progress, progress.toInt())
-        }
+        viewModel.trainingProgress.postValue(max(trainProgressBar.progress, progress.toInt()))
 //        debug("Progress = $progress, Loss = $loss")
         if (loss < Constant.TargetTrainLoss) {
             tlModel?.disableTraining()
-            runOnUiThread {
-                logRunOnUi("更改开始按钮可操作性")
-                startControllerActivityBtn.isEnabled = true
-            }
+            viewModel.startControllerActivityBtnEnable.postValue(true)
             debug("训练完成")
         }
     }

@@ -30,6 +30,7 @@ class Motor constructor(
                     limit(value, -1.0, 1.0)
                 else 0.0
             setOrGetPower(inputPower)
+
         }
         get() = setOrGetPower(Double.NaN)
 

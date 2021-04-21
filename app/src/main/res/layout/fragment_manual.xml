@@ -1,176 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".ui.main.ManualFragment">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="center"
-        android:layout_weight="1.4"
-        android:orientation="vertical">
+    <data>
 
-        <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
-            android:id="@+id/motor_0_water_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:rotation="45"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
-            android:id="@+id/motor_1_water_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:rotation="-45"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.8"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
-            android:id="@+id/motor_2_water_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:rotation="-45"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.2"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
-            android:id="@+id/motor_3_water_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:rotation="45"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.8"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <edu.scut.submarinerobotcontroller.ui.view.MotorTopView
-            android:id="@+id/motor_4_water_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.18"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <edu.scut.submarinerobotcontroller.ui.view.MotorTopView
-            android:id="@+id/motor_5_water_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.82"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/text_depth_power"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <Button
-        android:id="@+id/resetDepthPower"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/reset_depth_power" />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center">
-
-        <edu.scut.submarinerobotcontroller.ui.view.GamepadStick
-            android:id="@+id/gamepadLeftStick"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginStart="32dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <edu.scut.submarinerobotcontroller.ui.view.GamepadStick
-            android:id="@+id/gamepadRightStick"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="32dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <variable
+            name="data"
+            type="edu.scut.submarinerobotcontroller.ui.viewmodel.ControllerSharedViewModel" />
+    </data>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ui.main.ManualFragment">
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/servoBound"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="center"
+            android:layout_weight="1.4"
+            android:orientation="vertical">
+
+            <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
+                android:id="@+id/motor_0_water_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:rotation="45"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
+                android:id="@+id/motor_1_water_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:rotation="-45"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.8"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
+                android:id="@+id/motor_2_water_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:rotation="-45"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.2"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <edu.scut.submarinerobotcontroller.ui.view.MotorSideView
+                android:id="@+id/motor_3_water_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:rotation="45"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.8"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <edu.scut.submarinerobotcontroller.ui.view.MotorTopView
+                android:id="@+id/motor_4_water_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.18"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <edu.scut.submarinerobotcontroller.ui.view.MotorTopView
+                android:id="@+id/motor_5_water_view"
+                android:layout_width="203dp"
+                android:layout_height="205dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.82"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/text_depth_power"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{data.depthPowerText}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <Button
+            android:id="@+id/resetDepthPower"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:checked="true"
-            android:text="@string/servo_bound" />
+            android:layout_gravity="center"
+            android:text="@string/reset_depth_power" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <edu.scut.submarinerobotcontroller.ui.view.GamepadStick
+                android:id="@+id/gamepadLeftStick"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <edu.scut.submarinerobotcontroller.ui.view.GamepadStick
+                android:id="@+id/gamepadRightStick"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="32dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:orientation="horizontal">
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/servo1Text"
-                android:layout_width="80sp"
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/servoBound"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/left_servo_text" />
+                android:layout_gravity="center_horizontal"
+                android:checked="true"
+                android:text="@string/servo_bound" />
 
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/servo1Position"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="179" />
-        </LinearLayout>
+                android:layout_marginHorizontal="16dp"
+                android:orientation="horizontal">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/servo1Text"
+                    android:layout_width="80sp"
+                    android:layout_height="wrap_content"
+                    android:text="@{data.leftServoText}" />
 
-            <TextView
-                android:id="@+id/servo2Text"
-                android:layout_width="80sp"
-                android:layout_height="wrap_content"
-                android:text="@string/right_servo_text" />
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:id="@+id/servo1Position"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="179" />
+            </LinearLayout>
 
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/servo2Position"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="179" />
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/servo2Text"
+                    android:layout_width="80sp"
+                    android:layout_height="wrap_content"
+                    android:text="@{data.rightServoText}" />
+
+                <androidx.appcompat.widget.AppCompatSeekBar
+                    android:id="@+id/servo2Position"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="179" />
+            </LinearLayout>
+
         </LinearLayout>
 
     </LinearLayout>
-
-</LinearLayout>
+</layout>

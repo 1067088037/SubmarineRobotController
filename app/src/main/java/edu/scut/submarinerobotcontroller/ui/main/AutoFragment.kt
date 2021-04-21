@@ -2,7 +2,6 @@ package edu.scut.submarinerobotcontroller.ui.main
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
 import android.view.*
@@ -10,20 +9,22 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import edu.scut.submarinerobotcontroller.Connector
 import edu.scut.submarinerobotcontroller.Constant
 import edu.scut.submarinerobotcontroller.R
+import edu.scut.submarinerobotcontroller.databinding.FragmentAutoBinding
 import edu.scut.submarinerobotcontroller.opmode.AutomaticController
 import edu.scut.submarinerobotcontroller.opmode.RobotMode
-import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
 import edu.scut.submarinerobotcontroller.tools.Vision
 import edu.scut.submarinerobotcontroller.tools.debug
 import edu.scut.submarinerobotcontroller.tools.logRunOnUi
 import edu.scut.submarinerobotcontroller.tools.radToDegree
+import edu.scut.submarinerobotcontroller.ui.viewmodel.ControllerSharedViewModel
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCamera2View
-import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import java.util.*
@@ -32,28 +33,23 @@ import kotlin.math.abs
 
 class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
 
+    private lateinit var viewModel: ControllerSharedViewModel
+    private lateinit var dataBinding: FragmentAutoBinding
+
     lateinit var camera2View: JavaCamera2View
     lateinit var commandTextView: TextView
-    lateinit var commandScrollView: ScrollView
-    lateinit var signalLight: TextView
-    private lateinit var orientationAnglesXTextView: TextView
-    private lateinit var orientationAnglesYTextView: TextView
-    private lateinit var orientationAnglesZTextView: TextView
-    private lateinit var motorPowerProgressBarList: Array<ProgressBar>
-    private lateinit var degreeWithTurnTextView: TextView
     private var lastUpdateDegreeTime = System.currentTimeMillis()
     private var commandTextList = arrayListOf<String>()
-    private var foldCommandTextNumber = 0
 
+    private var foldCommandTextNumber = 0
     private var cameraFrameWidth = 0
     private var cameraFrameHeight = 0
 
-    private var lastSetSignalParameters = arrayOf(0, 0, 0, 0, "")
-    private val lastOrientationText: ArrayList<String> = arrayListOf()
+    private val lastOrientationText: Array<String> = Array(3) { "" }
 
     init {
         //将Fragment内部方法放到Connector
-        Connector.updateMotorPower = this::updateMotorPower
+//        Connector.updateMotorPower = this::updateMotorPower
         Connector.updateCommand = this::updateCommand
         Connector.updateOrientationAnglesText = this::updateOrientationAnglesText
         Connector.updateOrientationAngles = this::updateOrientationAngles
@@ -65,34 +61,38 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_auto, container, false)
-
-        signalLight = view.findViewById(R.id.signal_light)
-        setSignal()
-        orientationAnglesXTextView = view.findViewById(R.id.text_orientation_angles_x)
-        orientationAnglesYTextView = view.findViewById(R.id.text_orientation_angles_y)
-        orientationAnglesZTextView = view.findViewById(R.id.text_orientation_angles_z)
-        motorPowerProgressBarList = arrayOf(
-            view.findViewById(R.id.progress_motor_0_power),
-            view.findViewById(R.id.progress_motor_1_power),
-            view.findViewById(R.id.progress_motor_2_power),
-            view.findViewById(R.id.progress_motor_3_power),
-            view.findViewById(R.id.progress_motor_4_power),
-            view.findViewById(R.id.progress_motor_5_power)
+    ): View {
+        dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_auto, container, true)
+        viewModel = ViewModelProvider(requireActivity()).get(
+            "ControllerSharedViewModel",
+            ControllerSharedViewModel::class.java
         )
-        degreeWithTurnTextView = view.findViewById(R.id.degreeWithTurn)
-        commandTextView = view.findViewById(R.id.text_command)
-        commandScrollView = view.findViewById(R.id.scrollView_command)
+        dataBinding.data = viewModel
+        dataBinding.lifecycleOwner = this
 
-        camera2View = view.findViewById(R.id.camera2_view)
+        viewModel.motorPower.observe(this, androidx.lifecycle.Observer { doubles ->
+            val green = activity!!.getColor(R.color.positive_green)
+            val red = activity!!.getColor(R.color.negative_red)
+            viewModel.motorPowerProgress.value =
+                doubles.map { abs(it * 100).toInt() }.toTypedArray()
+            viewModel.motorPowerColor.value =
+                doubles.map { if (it >= 0) green else red }.toTypedArray()
+        })
+        viewModel.signalBackgroundColor.observe(this, androidx.lifecycle.Observer {
+            dataBinding.signalLight.setBackgroundColor(it)
+        })
+
+        setSignal()
+        commandTextView = dataBinding.textCommand
+
+        camera2View = dataBinding.camera2View
         camera2View.viewTreeObserver.addOnGlobalLayoutListener(object :
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 if (cameraFrameWidth == 0) return
                 val params = camera2View.layoutParams as LinearLayout.LayoutParams
                 val width = camera2View.measuredWidth
-                val height = camera2View.measuredHeight
+//                val height = camera2View.measuredHeight
                 params.width = width
                 params.height = cameraFrameHeight * width / cameraFrameWidth
                 camera2View.layoutParams = params
@@ -103,7 +103,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         camera2View.setCvCameraViewListener(this)
 
         updateCommand(getString(R.string.command_default))
-        return view
+        return dataBinding.root
     }
 
     /**
@@ -168,43 +168,15 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
      * 设置信号颜色
      */
     private fun setSignal(
-        a: Int = 64,
+        a: Int = 32,
         r: Int = 0,
         g: Int = 0,
         b: Int = 0,
         text: String = "Signal"
     ) {
-        if (a == lastSetSignalParameters[0] && r == lastSetSignalParameters[1] && g == lastSetSignalParameters[2] && b == lastSetSignalParameters[3] && text == lastSetSignalParameters[4]) {
-            //不修改UI
-        } else {
-            activity?.runOnUiThread {
-                logRunOnUi("控制台颜色")
-                signalLight.setBackgroundColor(Color.argb(a, r, g, b))
-                signalLight.setTextColor(Color.argb(a, 255, 255, 255))
-                signalLight.text = text
-            }
-            lastSetSignalParameters[0] = a
-            lastSetSignalParameters[1] = r
-            lastSetSignalParameters[2] = g
-            lastSetSignalParameters[3] = b
-            lastSetSignalParameters[4] = text
-        }
-    }
-
-    private fun updateMotorPower(power: Array<Pair<Int, Double>>) {
-        logRunOnUi("自动界面 更新马达功率")
-        if (activity != null) {
-            val green = activity!!.getColor(R.color.positive_green)
-            val red = Color.rgb(221, 0, 0)
-            activity?.runOnUiThread {
-                for (i in power) {
-                    motorPowerProgressBarList[i.first].progress = abs(i.second * 100.0).toInt()
-                    val color = if (i.second >= 0) green else red
-                    motorPowerProgressBarList[i.first].progressTintList =
-                        ColorStateList.valueOf(color)
-                }
-            }
-        }
+        viewModel.signal.postValue(text)
+        viewModel.signalTextColor.postValue(Color.argb(a, 255, 255, 255))
+        viewModel.signalBackgroundColor.postValue(Color.argb(a, r, g, b))
     }
 
     /**
@@ -213,20 +185,17 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     private fun updateOrientationAnglesText(str: ArrayList<String>) {
         if (activity == null) return
         if (str != lastOrientationText) {
-            if (str.isEmpty())
+            if (str.isEmpty()) {
                 for (i in 1..3) {
                     str.add(getString(R.string.orientation_angles_null))
                 }
-            activity?.runOnUiThread {
-                logRunOnUi("更新方位角")
-                orientationAnglesXTextView.text = str[0]
-                orientationAnglesYTextView.text = str[1]
-                orientationAnglesZTextView.text = str[2]
             }
-            lastOrientationText.clear()
-            str.forEach {
-                lastOrientationText.add(it)
+            for ((i, value) in str.withIndex()) {
+                lastOrientationText[i] = value
             }
+            if (this::viewModel.isInitialized) viewModel.orientationAngles.postValue(
+                lastOrientationText
+            )
         }
     }
 
@@ -246,10 +215,8 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     private fun updateDegreeWithTurn(str: String) {
         if (System.currentTimeMillis() - lastUpdateDegreeTime >= 500) {
             lastUpdateDegreeTime = System.currentTimeMillis()
-            if (degreeWithTurnTextView.text != str) {
-                activity?.runOnUiThread {
-                    degreeWithTurnTextView.text = str
-                }
+            if (dataBinding.degreeWithTurn.text != str) {
+                viewModel.degreeWithTurn.postValue(str)
             }
         }
     }
@@ -271,18 +238,15 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
             commandTextList.removeAt(0)
             foldCommandTextNumber++
         }
-        debug("Line = ${commandTextList.size}")
-        if (this::commandTextView.isInitialized) {
-            val tempArray = commandTextList.toArray()
-            var temp = "${foldCommandTextNumber}条命令被折叠\n"
-            for (i in tempArray) {
-                temp += i
-            }
-            activity?.runOnUiThread {
-                logRunOnUi("更新指令")
-                commandTextView.text = temp
-                commandScrollView.post { commandScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
-            }
+        val tempArray = commandTextList.toArray()
+        var temp = "${foldCommandTextNumber}条命令被折叠\n"
+        for (i in tempArray) {
+            temp += i
+        }
+
+        if (this::viewModel.isInitialized) {
+            viewModel.command.postValue(temp)
+            dataBinding.scrollViewCommand.post { dataBinding.scrollViewCommand.fullScroll(ScrollView.FOCUS_DOWN) }
         }
     }
 

@@ -14,8 +14,6 @@ import java.lang.Exception
  * 非UI类与UI类交互内容
  */
 object Connector {
-    lateinit var updateMotorPower: (Array<Pair<Int, Double>>) -> Unit
-    lateinit var updateMotorPowerWater: (power: Array<Pair<Int, Double>>) -> Unit
     lateinit var updateOrientationAnglesText: (str: ArrayList<String>) -> Unit
     lateinit var updateOrientationAngles: (values: FloatArray) -> Unit
     lateinit var updateDegreeWithTurn: (str: String) -> Unit

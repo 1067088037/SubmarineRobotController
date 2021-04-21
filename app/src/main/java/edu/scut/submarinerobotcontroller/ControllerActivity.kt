@@ -14,6 +14,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager.widget.ViewPager
 import cn.wandersnail.bluetooth.BTManager
 import cn.wandersnail.bluetooth.Connection
@@ -22,15 +24,16 @@ import cn.wandersnail.commons.observer.Observe
 import cn.wandersnail.commons.poster.RunOn
 import cn.wandersnail.commons.poster.Tag
 import cn.wandersnail.commons.poster.ThreadMode
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import edu.scut.submarinerobotcontroller.databinding.ActivityControllerBinding
 import edu.scut.submarinerobotcontroller.opmode.*
 import edu.scut.submarinerobotcontroller.tools.*
 import edu.scut.submarinerobotcontroller.ui.main.AutoFragment
 import edu.scut.submarinerobotcontroller.ui.main.ManualFragment
 import edu.scut.submarinerobotcontroller.ui.main.SectionsPagerAdapter
 import edu.scut.submarinerobotcontroller.ui.view.NoScrollViewPager
+import edu.scut.submarinerobotcontroller.ui.viewmodel.ControllerSharedViewModel
 import java.util.*
 import kotlin.math.max
 import kotlin.system.measureTimeMillis
@@ -40,6 +43,8 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
 
     private val robotController: BaseController?
         get() = Connector.mainController
+    private lateinit var viewModel: ControllerSharedViewModel
+    private lateinit var dataBinding: ActivityControllerBinding
 
     lateinit var runAndPauseButton: Button
     lateinit var emergencyStopButton: Button
@@ -68,6 +73,13 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     private var lastRunOnUiTime = System.currentTimeMillis()
 
     private val updateUIAndPredictThread = Thread {
+        fun postMotorPowerUi() {
+            if (System.currentTimeMillis() - lastRunOnUiTime >= 20) {
+                viewModel.motorPower.postValue(robotController!!.motorArray.map { it.power }
+                    .toTypedArray())
+                lastRunOnUiTime = System.currentTimeMillis()
+            }
+        }
         Thread.currentThread().name = "控制器时间显示和推理线程"
         while (Thread.currentThread().isInterrupted.not()) {
             val connection = Connector.bluetoothConnection
@@ -83,39 +95,16 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                         else -> "未知"
                     }
                 }" else "蓝牙连接断开"
-            if (title != controllerTitleTextView.text) runOnUiThread {
-                controllerTitleTextView.text = title
-            }
+            if (title != controllerTitleTextView.text) viewModel.title.postValue(title)
+            postMotorPowerUi()
             if (clock.getMillSeconds() != 0L) {
                 while (isRunning(false)) {
-                    if (System.currentTimeMillis() - lastRunOnUiTime >= 30) {
-                        debug("控制器更新UI")
-                        runOnUiThread {
-                            if (clock.getSeconds() != lastShowTime) {
-                                logRunOnUi("更新时间")
-                                val runningTimeText =
-                                    "${getString(R.string.running_time)}\n${clock.getSeconds()} 秒"
-                                runningTime.text = runningTimeText
-                                lastShowTime = clock.getSeconds()
-                            }
-                            if (robotController != null) {
-                                if (robotController is AutomaticController) {
-                                    val powerList = Array(6) { Pair(-1, -1.0) }
-                                    for ((i, value) in robotController!!.motorArray.withIndex()) {
-                                        powerList[i] = Pair(i, value.power)
-                                    }
-                                    Connector.updateMotorPower(powerList)
-                                } else if (robotController is ManualController) {
-                                    val powerList = Array(6) { Pair(-1, -1.0) }
-                                    for ((i, value) in robotController!!.motorArray.withIndex()) {
-                                        powerList[i] = Pair(i, value.power)
-                                    }
-                                    Connector.updateMotorPowerWater(powerList)
-                                }
-                            }
-                        }
-                        lastRunOnUiTime = System.currentTimeMillis()
+                    if (clock.getSeconds() != lastShowTime) {
+                        logRunOnUi("更新时间")
+                        viewModel.time.postValue("${getString(R.string.running_time)}\n${clock.getSeconds()} 秒")
+                        lastShowTime = clock.getSeconds()
                     }
+                    postMotorPowerUi()
 //                debug("我的线程数 = $threadCount， 总线程数 = ${Thread.activeCount()}")
                     if (Connector.robotControllerMode == RobotControllerMode.Automatic)
                         Connector.updateOrientationAngles(orientationAngles())
@@ -149,7 +138,7 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                                             "圆柱体"
                                         )
                                     }
-                                } else Connector.setSignal(64, 0, 0, 0, "置信度低")
+                                } else Connector.setSignal(32, 0, 0, 0, "置信度低")
                             } else {
                                 if (cubeCoincidence >= Constant.NeedCoincidence) {
                                     cubeTimes++
@@ -165,9 +154,9 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                                             "正方体"
                                         )
                                     }
-                                } else Connector.setSignal(64, 0, 0, 0, "置信度低")
+                                } else Connector.setSignal(32, 0, 0, 0, "置信度低")
                             }
-                        } else Connector.setSignal(64, 0, 0, 0, "预测失败")
+                        } else Connector.setSignal(32, 0, 0, 0, "预测失败")
                         Connector.needToBePredicted = null
                     } else {
                         repeat(10) {
@@ -279,16 +268,23 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_controller)
-        debug("Controller onCreate 总线程数 = ${Thread.activeCount()}")
+        dataBinding = DataBindingUtil.setContentView(this, R.layout.activity_controller)
+        viewModel = ViewModelProvider(this).get(
+            "ControllerSharedViewModel",
+            ControllerSharedViewModel::class.java
+        )
+        dataBinding.data = viewModel
+        dataBinding.lifecycleOwner = this
 
+        viewModel.time.value = getString(R.string.running_time)
+
+        debug("Controller onCreate 总线程数 = ${Thread.activeCount()}")
         val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
         val viewPager: NoScrollViewPager = findViewById(R.id.view_pager)
         viewPager.adapter = sectionsPagerAdapter
         viewPager.addOnPageChangeListener(this)
         val tabs: TabLayout = findViewById(R.id.tabs)
         tabs.setupWithViewPager(viewPager)
-        val appBarLayout = findViewById<AppBarLayout>(R.id.material_AppBarLayout)
 
         runAndPauseButton = findViewById(R.id.btn_run_and_pause)
         emergencyStopButton = findViewById(R.id.btn_emergency_stop)
@@ -510,10 +506,7 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
             )
         }
         Connector.updateOrientationAnglesText(arrayListOf())
-        runOnUiThread {
-            logRunOnUi("时间重置")
-            runningTime.text = getString(R.string.running_time)
-        }
+        viewModel.time.postValue(getString(R.string.running_time))
         clock.reset()
     }
 
@@ -528,11 +521,10 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     }
 
     private fun updatePing(ping: Int) {
-        val textPing = findViewById<TextView>(R.id.text_ping)
         val pingText =
             "${getString(R.string.ping)} = ${if (ping >= 1000) "Infinity" else ping.toString()} ms"
-        textPing.text = pingText
-        textPing.setTextColor(
+        viewModel.ping.postValue(pingText)
+        viewModel.pingColor.postValue(
             when (ping) {
                 in 0..50 -> Color.GREEN
                 in 51..200 -> Color.BLUE

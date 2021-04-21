@@ -1,89 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <ProgressBar
-        android:id="@+id/bluetooth_working"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:indeterminateTint="@color/teal_200"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <data>
 
-    <LinearLayout
+        <variable
+            name="data"
+            type="edu.scut.submarinerobotcontroller.ui.viewmodel.MainViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="0dp">
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
 
-        <TextView
-            android:id="@+id/bluetooth_state"
-            android:layout_width="match_parent"
+        <ProgressBar
+            android:id="@+id/bluetooth_working"
+            android:visibility="@{data.bluetoothWorkingProgressVisibility}"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:gravity="center" />
+            android:layout_marginTop="8dp"
+            android:indeterminateTint="@color/teal_200"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bluetooth_state"
-            tools:ignore="MissingConstraints">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_editor_absoluteX="0dp">
 
-            <Button
-                android:id="@+id/btn_start_control_activity"
+            <TextView
+                android:id="@+id/bluetooth_state"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="startControllerActivity"
-                android:text="@string/button_controller" />
+                android:layout_margin="16dp"
+                android:gravity="center"
+                android:text="@{data.bluetoothStateText}" />
 
-            <Button
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="manualRequestPermission"
-                android:text="@string/button_permission" />
+                android:gravity="center"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/bluetooth_state"
+                tools:ignore="MissingConstraints">
 
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="manualConnectBluetooth"
-                android:text="@string/button_bluetooth" />
+                <Button
+                    android:id="@+id/btn_start_control_activity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:enabled="@{data.startControllerActivityBtnEnable}"
+                    android:onClick="startControllerActivity"
+                    android:text="@string/button_controller" />
 
-            <ProgressBar
-                android:id="@+id/train_progress"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:progressTint="@color/teal_200" />
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="manualRequestPermission"
+                    android:text="@string/button_permission" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="manualConnectBluetooth"
+                    android:text="@string/button_bluetooth" />
+
+                <ProgressBar
+                    android:id="@+id/train_progress"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:progress="@{data.trainingProgress}" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
+        <com.google.android.material.circularreveal.coordinatorlayout.CircularRevealCoordinatorLayout
+            android:id="@+id/main_coordinatorlayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:ignore="MissingConstraints">
 
-    <com.google.android.material.circularreveal.coordinatorlayout.CircularRevealCoordinatorLayout
-        android:id="@+id/main_coordinatorlayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:ignore="MissingConstraints">
+        </com.google.android.material.circularreveal.coordinatorlayout.CircularRevealCoordinatorLayout>
 
-    </com.google.android.material.circularreveal.coordinatorlayout.CircularRevealCoordinatorLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
