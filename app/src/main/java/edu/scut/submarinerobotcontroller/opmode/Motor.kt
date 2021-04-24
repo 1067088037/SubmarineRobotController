@@ -46,11 +46,6 @@ class Motor constructor(
     fun getHardwarePower(): Byte {
         var power = (power * Constant.MotorMaxPower * if (direction == Direction.Forward) 1 else -1)
         if (power !in -100.0..100.0) throw IllegalStateException("Motor 功率越界 功率=$power")
-        if (port == 2) power = when (power) {
-            in -0.01..0.01 -> 0.0
-            !in -0.30..0.30 -> power
-            else -> sign(power) * 0.30
-        }
         return power.toInt().toByte()
     }
 }

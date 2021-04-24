@@ -2,6 +2,7 @@ package edu.scut.submarinerobotcontroller
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.hardware.*
@@ -286,6 +287,21 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
         viewPager.addOnPageChangeListener(this)
         val tabs: TabLayout = findViewById(R.id.tabs)
         tabs.setupWithViewPager(viewPager)
+
+        dataBinding.signalLight.setOnLongClickListener {
+            debug("长按标签")
+            val autoData = MyDatabase.getInstance().getAllData()
+            val autoList = autoData.map { it.description }.toMutableList()
+            autoList.add(0, "空")
+            AlertDialog.Builder(this)
+                .setTitle("选择自动程序")
+                .setItems(autoList.toTypedArray()) { _: DialogInterface?, which: Int ->
+                    if (which == 0) Connector.autoRunningId = -1
+                    else Connector.autoRunningId = autoData[which - 1].id
+                }
+                .show()
+            return@setOnLongClickListener true
+        }
 
         viewModel.signalBackgroundColor.observe(this, androidx.lifecycle.Observer {
             dataBinding.signalLight.setBackgroundColor(it)

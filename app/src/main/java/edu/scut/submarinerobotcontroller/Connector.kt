@@ -35,6 +35,11 @@ object Connector {
     var isAutomaticControl = false//false手机控制, true单片机控制
     var needToBePredicted: FloatArray? = null
 
+    var autoRunningId = -1
+        set(value) {
+            field = value
+            debug("AutoId 更新 = $field")
+        }
     private var leftStickX: Float = 0f
     private var leftStickY: Float = 0f
     private var rightStickX: Float = 0f

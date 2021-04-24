@@ -6,6 +6,7 @@ import edu.scut.submarinerobotcontroller.tools.*
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.math.*
+import kotlin.system.measureTimeMillis
 
 class AutomaticController : BaseController() {
 
@@ -49,67 +50,99 @@ class AutomaticController : BaseController() {
     private var toRightTimes = 0
     private var rotateTargetAngle = 0.0
 
+    private val monitor = Monitor()
+    private val monitorClock = Clock()
+
     override fun run() {
-        val clock = Clock()
-        clock.reset()
-        clock.start()
-        val waitTime = 3000
-        while (clock.getMillSeconds() <= waitTime) {
-            command(clock.getMillSeconds().toString())
-            Connector.setSignal(255, 255, 255, 0, "${waitTime - clock.getMillSeconds()}")
-            Thread.sleep(50)
-        }
-        while (robotMode(null) != RobotMode.Stop) {
-            monitorAngles()
-            if (currentRunningMode != Direction.Right) {
-                when (direction) {
-                    Direction.Forward -> {
-                        toRightTimes = 0
-                        val rotatePower = (navigatePipe.angle - 90) * 0.05
-                        val translatePower = navigatePipe.offsetX * 0.0005
-                        setHorizontalPower(
-                            forward = 0.5, // TODO: 2021/4/24
-                            rotate = rotatePower,
-//                            translate = translatePower
-                            translate = 0.0 // TODO: 2021/4/24
+        if (Connector.autoRunningId == -1) {
+            while (robotMode() != RobotMode.Stop) {
+                Thread.sleep(10)
+            }
+        } else {
+//        Thread {
+            debug("开始载入目标数据")
+            debug(
+                "载入完成，用时${
+                    measureTimeMillis {
+                        monitor.input(
+                            MyDatabase.getInstance().getTargetData()
                         )
                     }
-                    Direction.Right -> {
-                        if (clock.getMillSeconds() >= 10000) {
-                            if (toRightTimes < 10) {
-                                toRightTimes++
-                            } else {
-                                // TODO: 2021/4/24
-//                                toRightTimes = 0
-//                                currentRunningMode = Direction.Right
-//                                rotateTargetAngle = currentAngleX + 90.0
-//                                command("当前状态更改为 $currentRunningMode")
-                            }
-                        }
-                    }
-                    Direction.Unknown -> {
-                        toRightTimes = 0
-                        setHorizontalPower(forward = 0.0)
-                    }
-                }
-            } else {
-                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.002
-                setHorizontalPower(forward = 0.0, rotate = rotatePower, translate = 0.0)
-                if (abs(rotateTargetAngle - currentAngleX) <= 3) {
-                    setHorizontalPower(forward = 0.0, rotate = 0.0)
-                    currentRunningMode = Direction.Forward
-                    command("当前状态更改为 $currentRunningMode")
-                }
+                }ms"
+            )
+//        }.start()
+            val clock = Clock()
+            clock.reset()
+            clock.start()
+            val waitTime = 6000
+            while (clock.getMillSeconds() <= waitTime) {
+                if (mainController!!.robotMode() == RobotMode.Stop) break
+                Connector.setSignal(255, 255, 0, 255, "${waitTime - clock.getMillSeconds()}")
+                Thread.sleep(50)
             }
-            when (diving) {
-                Diving.Up -> currentDepthPower += 0.010
-                Diving.Keep, Diving.Unknown -> currentDepthPower += 0.0
-                Diving.Down -> currentDepthPower -= 0.010
+            monitorClock.reset()
+            while (robotMode(null) != RobotMode.Stop) {
+                val powerList = monitor.execute(monitorClock.getMillSeconds().toInt())
+                if (powerList != null) {
+                    setSidePower(powerList[0], powerList[1], powerList[2], powerList[3])
+                    leftDepthMotor.power = powerList[4]
+                    rightDepthMotor.power = powerList[5]
+                } else {
+                    command("跳出循环")
+                    break
+                }
+
+//            monitorAngles()
+//            if (currentRunningMode != Direction.Right) {
+//                when (direction) {
+//                    Direction.Forward -> {
+//                        toRightTimes = 0
+//                        val rotatePower = (navigatePipe.angle - 90) * 0.03
+//                        val translatePower = navigatePipe.offsetX * 0.002
+//                        setHorizontalPower(
+//                            forward = 0.0, // TODO: 2021/4/24
+//                            rotate = -rotatePower,
+//                            translate = translatePower
+////                            translate = 0.0 // TODO: 2021/4/24
+//                        )
+//                    }
+//                    Direction.Right -> {
+//                        if (clock.getMillSeconds() >= 10000) {
+//                            if (toRightTimes < 10) {
+//                                toRightTimes++
+//                            } else {
+//                                // TODO: 2021/4/24
+////                                toRightTimes = 0
+////                                currentRunningMode = Direction.Right
+////                                rotateTargetAngle = currentAngleX + 90.0
+////                                command("当前状态更改为 $currentRunningMode")
+//                            }
+//                        }
+//                    }
+//                    Direction.Unknown -> {
+//                        toRightTimes = 0
+//                        setHorizontalPower(forward = 0.0)
+//                    }
+//                }
+//            } else {
+//                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.002
+//                setHorizontalPower(forward = 0.0, rotate = rotatePower, translate = 0.0)
+//                if (abs(rotateTargetAngle - currentAngleX) <= 3) {
+//                    setHorizontalPower(forward = 0.0, rotate = 0.0)
+//                    currentRunningMode = Direction.Forward
+//                    command("当前状态更改为 $currentRunningMode")
+//                }
+//            }
+//            when (diving) {
+//                Diving.Up -> currentDepthPower += 0.010
+//                Diving.Keep, Diving.Unknown -> currentDepthPower += 0.0
+//                Diving.Down -> currentDepthPower -= 0.010
+//            }
+//            currentDepthPower = limit(currentDepthPower, -1.0, 1.0)
+////            setTopPower(currentDepthPower) todo
+//            setTopPower(0.0) // TODO: 2021/4/24
+                Thread.sleep(20)
             }
-            currentDepthPower = limit(currentDepthPower, -1.0, 1.0)
-//            setTopPower(currentDepthPower) todo
-            setTopPower(0.0) // TODO: 2021/4/24  
-            Thread.sleep(20)
         }
         Connector.updateDegreeWithTurn("")
     }

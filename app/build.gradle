@@ -12,8 +12,8 @@ android {
         applicationId "edu.scut.submarinerobotcontroller"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 49
-        versionName "3.3.1"
+        versionCode 50
+        versionName "3.3.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {

@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
-import android.os.SystemClock
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -41,7 +40,6 @@ import java.nio.ByteBuffer
 import java.nio.channels.GatheringByteChannel
 import java.nio.channels.ScatteringByteChannel
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.thread
 import kotlin.math.*
 import kotlin.system.exitProcess
@@ -155,7 +153,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         dataBinding.data = viewModel
         dataBinding.lifecycleOwner = this
-        database = MyDatabase(this, "main", null, 1)
+        database = MyDatabase.getInstance(this, "main", null, 1)
         SQLiteStudioService.instance().start(this)
 
         coordinatorLayout = findViewById(R.id.main_coordinatorlayout)
@@ -429,7 +427,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
     private fun loadModel() {
         Thread {
             tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
-            val dataList = database.getData()
+            val dataList = database.getTFData()
             if (dataList.first == Constant.ModelVersion) {
                 debug("训练 从数据库载入资源")
                 viewModel.trainingHintText.postValue("正在从数据库中加载现有模型")
@@ -542,7 +540,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
             }
             R.id.menu_item_retrain -> {
                 tlModel?.close()
-                database.deleteAll()
+                database.deleteTFAll()
                 viewModel.trainingProgress.postValue(0)
                 loadModel()
             }
@@ -626,8 +624,8 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
 
                 override fun write(srcs: Array<ByteBuffer>): Long {
                     debug("训练 写入 size = ${srcs.size}")
-                    database.deleteAll()
-                    database.insertData(Pair(Constant.ModelVersion, srcs))
+                    database.deleteTFAll()
+                    database.insertTFData(Pair(Constant.ModelVersion, srcs))
                     return srcs.size.toLong()
                 }
 
