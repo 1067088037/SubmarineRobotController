@@ -97,7 +97,8 @@ object Vision {
         )
 
         Core.bitwise_or(dst, copyToChannels(outBlackMask, rgba.channels()), dst)
-        val res = dst
+//        val res = dst
+        val res = rgba
         Utils.matToBitmap(res, bitmap) //预处理之后
         return Pair(
             ImageUtils.prepareCameraImage(bitmap, 0),
@@ -105,7 +106,7 @@ object Vision {
         )
     }
 
-    fun copyToChannels(input: Mat, channels: Int): Mat {
+    private fun copyToChannels(input: Mat, channels: Int): Mat {
         val output = Mat()
         val arrayList = MutableList(channels) { input }
         Core.merge(arrayList, output)

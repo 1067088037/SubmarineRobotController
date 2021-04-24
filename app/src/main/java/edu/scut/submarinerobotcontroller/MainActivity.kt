@@ -36,6 +36,7 @@ import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
 import org.tensorflow.lite.examples.transfer.api.TransferLearningModel
+import pl.com.salsoft.sqlitestudioremote.SQLiteStudioService
 import java.nio.ByteBuffer
 import java.nio.channels.GatheringByteChannel
 import java.nio.channels.ScatteringByteChannel
@@ -155,6 +156,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         dataBinding.data = viewModel
         dataBinding.lifecycleOwner = this
         database = MyDatabase(this, "main", null, 1)
+        SQLiteStudioService.instance().start(this)
 
         coordinatorLayout = findViewById(R.id.main_coordinatorlayout)
         bluetoothWorkingProgress = findViewById(R.id.bluetooth_working)
@@ -184,104 +186,10 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         }
         if (trainProgressBar.progress <= 99) {
             debug("需要加载模型")
-            Thread {
-                tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
-                val dataList = database.getData()
-                if (dataList.first == Constant.ModelVersion) {
-                    debug("训练 从数据库载入资源")
-                    val loader = object : ScatteringByteChannel {
-                        override fun close() {
-                        }
-
-                        override fun isOpen(): Boolean {
-                            return true
-                        }
-
-                        override fun read(
-                            dsts: Array<out ByteBuffer>?,
-                            offset: Int,
-                            length: Int
-                        ): Long {
-                            return 0L
-                        }
-
-                        override fun read(dsts: Array<ByteBuffer>): Long {
-                            for (i in dsts.indices) {
-                                dsts[i] = dataList.second[i]
-                            }
-                            debug("训练 读取 size = ${dsts.size}")
-                            return dsts.size.toLong()
-                        }
-
-                        override fun read(dst: ByteBuffer?): Int {
-                            return 0
-                        }
-                    }
-                    tlModel!!.loadParameters(loader)
-                    onTrainingFinished()
-                } else {
-                    viewModel.trainingProgressColor.postValue(Color.rgb(98, 0, 238))
-                    val sampleIndices =
-                        if (Constant.AddSampleNumber == -1) Constant.TrainData2Array.indices else 1..Constant.AddSampleNumber
-                    for (i in sampleIndices) {
-                        trainingList.offer(
-                            Pair(
-                                "2",
-                                BitmapFactory.decodeResource(
-                                    applicationContext!!.resources, Constant.TrainData2Array[i]
-                                )
-                            )
-                        )
-                    }
-                    for (i in sampleIndices) {
-                        trainingList.offer(
-                            Pair(
-                                "4",
-                                BitmapFactory.decodeResource(
-                                    applicationContext!!.resources, Constant.TrainData4Array[i]
-                                )
-                            )
-                        )
-                    }
-                    debug("加入训练列表完成")
-                    val addSampleRunnable = kotlinx.coroutines.Runnable {
-                        while (trainingList.isNotEmpty()) {
-                            val trainingObj = trainingList.peek()
-                            trainingList.poll()
-                            if (trainingObj != null) {
-                                tlModel!!.addSample(
-                                    Vision.prepareToPredict(trainingObj.second),
-                                    trainingObj.first
-                                ).get()
-                            }
-                            preparedSamples++
-                            viewModel.trainingProgress.postValue(((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt())
-                            debug("添加样本剩余 ${trainingList.size}")
-                        }
-                    }
-                    val threadList = Array(8) {
-                        Thread {
-                            addSampleRunnable.run()
-                        }
-                    }
-                    for (i in threadList) {
-                        i.start()
-                    }
-                    thread {
-                        addSampleRunnable.run()
-                        while (threadList.find { it.isAlive } != null) {
-                            Thread.sleep(1)
-                        }
-                        viewModel.trainingProgress.postValue(0)
-                        viewModel.trainingProgressColor.postValue(Color.rgb(3, 218, 197))
-                        tlModel!!.enableTraining(this)
-                    }
-                }
-
-            }.start()
+            loadModel()
         } else {
             debug("无需加载模型")
-            viewModel.startControllerActivityBtnEnable.postValue(true)
+            onTrainingFinished()
         }
     }
 
@@ -518,6 +426,109 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
 
     // ############################## 其它 ############################## Start
 
+    private fun loadModel() {
+        Thread {
+            tlModel = TransferLearningModelWrapper.getInstance(applicationContext)
+            val dataList = database.getData()
+            if (dataList.first == Constant.ModelVersion) {
+                debug("训练 从数据库载入资源")
+                viewModel.trainingHintText.postValue("正在从数据库中加载现有模型")
+                val loader = object : ScatteringByteChannel {
+                    override fun close() {
+                    }
+
+                    override fun isOpen(): Boolean {
+                        return true
+                    }
+
+                    override fun read(
+                        dsts: Array<out ByteBuffer>?,
+                        offset: Int,
+                        length: Int
+                    ): Long {
+                        return 0L
+                    }
+
+                    override fun read(dsts: Array<ByteBuffer>): Long {
+                        for (i in dsts.indices) {
+                            dsts[i] = dataList.second[i]
+                        }
+                        debug("训练 读取 size = ${dsts.size}")
+                        return dsts.size.toLong()
+                    }
+
+                    override fun read(dst: ByteBuffer?): Int {
+                        return 0
+                    }
+                }
+                tlModel!!.loadParameters(loader)
+                onTrainingFinished()
+            } else {
+                viewModel.trainingHintText.postValue("首次启动需要训练深度学习模型\n正在加载训练列表")
+                viewModel.trainingProgressColor.postValue(Color.rgb(98, 0, 238))
+                val sampleIndices =
+                    if (Constant.AddSampleNumber == -1) Constant.TrainData2Array.indices else 1..Constant.AddSampleNumber
+                for (i in sampleIndices) {
+                    trainingList.offer(
+                        Pair(
+                            "2",
+                            BitmapFactory.decodeResource(
+                                applicationContext!!.resources, Constant.TrainData2Array[i]
+                            )
+                        )
+                    )
+                }
+                for (i in sampleIndices) {
+                    trainingList.offer(
+                        Pair(
+                            "4",
+                            BitmapFactory.decodeResource(
+                                applicationContext!!.resources, Constant.TrainData4Array[i]
+                            )
+                        )
+                    )
+                }
+                debug("加入训练列表完成")
+                viewModel.trainingHintText.postValue("首次启动需要训练深度学习模型\n正在预处理数据")
+                val addSampleRunnable = kotlinx.coroutines.Runnable {
+                    while (trainingList.isNotEmpty()) {
+                        val trainingObj = trainingList.peek()
+                        trainingList.poll()
+                        if (trainingObj != null) {
+                            tlModel!!.addSample(
+                                Vision.prepareToPredict(trainingObj.second),
+                                trainingObj.first
+                            ).get()
+                        }
+                        preparedSamples++
+                        viewModel.trainingProgress.postValue(((preparedSamples.toDouble() / (preparedSamples + trainingList.size).toDouble()) * 100.0).toInt())
+                        debug("添加样本剩余 ${trainingList.size}")
+                    }
+                }
+                val threadList = Array(8) {
+                    Thread {
+                        addSampleRunnable.run()
+                    }
+                }
+                for (i in threadList) {
+                    i.start()
+                }
+                thread {
+                    addSampleRunnable.run()
+                    while (threadList.find { it.isAlive } != null) {
+                        Thread.sleep(1)
+                    }
+                    viewModel.trainingProgress.postValue(0)
+                    viewModel.trainingProgressColor.postValue(Color.rgb(3, 218, 197))
+                    viewModel.trainingHintText.postValue("首次启动需要训练深度学习模型\n正在训练模型")
+                    tlModel!!.enableTraining(this)
+                }
+            }
+
+        }.start()
+
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -528,6 +539,12 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
             R.id.menu_item_bt_disconnect -> {
                 BTManager.getInstance().disconnectAllConnections()
                 bluetoothStateTextView.text = "蓝牙连接中断"
+            }
+            R.id.menu_item_retrain -> {
+                tlModel?.close()
+                database.deleteAll()
+                viewModel.trainingProgress.postValue(0)
+                loadModel()
             }
             R.id.menu_item_about ->
                 AlertDialog.Builder(this)
@@ -575,6 +592,14 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         val progress = nowProgress / targetProgress * 100
         viewModel.trainingProgress.postValue(max(trainProgressBar.progress, progress.toInt()))
         debug("Progress = $progress, Loss = $loss")
+        viewModel.trainingHintText.postValue(
+            "首次启动需要训练深度学习模型\n正在训练模型 准确度:${
+                String.format(
+                    "%.3f",
+                    (1 - loss) * 100
+                )
+            }%"
+        )
         if (loss < Constant.TargetTrainLoss) onTrainingFinished()
     }
 
@@ -584,6 +609,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
         viewModel.startControllerActivityBtnEnable.postValue(true)
         tlModel?.disableTraining()
         debug("训练 完成")
+        viewModel.trainingHintText.postValue("TensorFlow加载完成\n模型版本:${Constant.ModelVersion}")
 
         if (loadFromDb.not()) {
             tlModel?.saveParameters(object : GatheringByteChannel {

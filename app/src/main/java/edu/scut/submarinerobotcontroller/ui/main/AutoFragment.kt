@@ -157,7 +157,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 if (Imgproc.contourArea(blackObject) > Constant.MinBlackObjArea) {
                     val needToPredict = Vision.prepareToPredict(rgba, hsv)
                     Connector.needToBePredicted = needToPredict.first
-                    return needToPredict.second
+//                    return needToPredict.second
                 } else setSignal(text = "物体太远")
             } else setSignal(text = "没有目标")
 

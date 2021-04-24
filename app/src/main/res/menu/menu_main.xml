@@ -6,6 +6,10 @@
         android:title="@string/all_disconnect" />
 
     <item
+        android:id="@+id/menu_item_retrain"
+        android:title="重新训练模型"/>
+
+    <item
         android:id="@id/menu_item_about"
         android:title="@string/about" />
 

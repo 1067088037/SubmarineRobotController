@@ -11,5 +11,6 @@ class MainViewModel : ViewModel() {
     val bluetoothStateText = MutableLiveData("")
     val trainingProgress = MutableLiveData(0)
     val trainingProgressColor = MutableLiveData(0)
+    val trainingHintText = MutableLiveData("")
 
 }

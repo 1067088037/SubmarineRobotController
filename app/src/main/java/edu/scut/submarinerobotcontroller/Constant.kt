@@ -9,7 +9,8 @@ object Constant {
         android.Manifest.permission.BLUETOOTH,
         android.Manifest.permission.BLUETOOTH_ADMIN,
         android.Manifest.permission.ACCESS_FINE_LOCATION,
-        android.Manifest.permission.ACCESS_COARSE_LOCATION
+        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+        android.Manifest.permission.INTERNET
     )
 
     val DefaultBluetoothName = arrayOf("ESP32_G91LrdEJ", "My Device")
@@ -36,13 +37,14 @@ object Constant {
     val BlackColorLower = Scalar(0.0, 0.0, 0.0)
     val BlackColorUpper = Scalar(180.0, 255.0, 80.0)
 
-    const val CommandMaxLine = 30
-    const val ModelVersion = 50
-    const val MinBlackObjArea = 4000
-    const val TargetTrainLoss = 0.005
+    const val ModelVersion = 55 //每次修改训练模型都要+1
     const val NeedCoincidence = 0.88
-    const val NeedPredictTimes = 15
+    const val TargetTrainLoss = 0.0040
     const val AddSampleNumber = -1 //-1代表全部
+    const val NeedPredictTimes = 15
+
+    const val CommandMaxLine = 30
+    const val MinBlackObjArea = 4000
     const val CylinderId = "2"
     const val CubeId = "4"
 
