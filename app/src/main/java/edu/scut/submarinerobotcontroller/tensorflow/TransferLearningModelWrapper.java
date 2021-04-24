@@ -24,6 +24,10 @@ import org.tensorflow.lite.examples.transfer.api.TransferLearningModel.LossConsu
 import org.tensorflow.lite.examples.transfer.api.TransferLearningModel.Prediction;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.ScatteringByteChannel;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -108,9 +112,24 @@ public class TransferLearningModelWrapper implements Closeable {
     }
 
     /**
+     * 保存参数
+     */
+    public void saveParameters(GatheringByteChannel outputChannel) throws IOException {
+        model.saveParameters(outputChannel);
+    }
+
+    /**
+     * 加载参数
+     */
+    public void loadParameters(ScatteringByteChannel inputChannel) throws IOException {
+        model.loadParameters(inputChannel);
+    }
+
+    /**
      * Frees all model resources and shuts down all background threads.
      */
     public void close() {
         model.close();
+        INSTANCE = null;
     }
 }

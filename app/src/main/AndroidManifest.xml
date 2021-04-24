@@ -12,8 +12,10 @@
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="false"
         android:icon="@mipmap/scut_logo"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/scut_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.SubmarineRobotController">

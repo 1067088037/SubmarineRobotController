@@ -18,10 +18,7 @@ import edu.scut.submarinerobotcontroller.R
 import edu.scut.submarinerobotcontroller.databinding.FragmentAutoBinding
 import edu.scut.submarinerobotcontroller.opmode.AutomaticController
 import edu.scut.submarinerobotcontroller.opmode.RobotMode
-import edu.scut.submarinerobotcontroller.tools.Vision
-import edu.scut.submarinerobotcontroller.tools.debug
-import edu.scut.submarinerobotcontroller.tools.logRunOnUi
-import edu.scut.submarinerobotcontroller.tools.radToDegree
+import edu.scut.submarinerobotcontroller.tools.*
 import edu.scut.submarinerobotcontroller.ui.viewmodel.ControllerSharedViewModel
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.JavaCamera2View
@@ -89,12 +86,15 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         camera2View.viewTreeObserver.addOnGlobalLayoutListener(object :
             ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
+                debug("观察者修改布局")
                 if (cameraFrameWidth == 0) return
                 val params = camera2View.layoutParams as LinearLayout.LayoutParams
+//                params.width = cameraFrameWidth
+//                params.height = cameraFrameWidth * 4 / 3
                 val width = camera2View.measuredWidth
-//                val height = camera2View.measuredHeight
+                val height = camera2View.measuredHeight
                 params.width = width
-                params.height = cameraFrameHeight * width / cameraFrameWidth
+                params.height = width * cameraFrameWidth / cameraFrameHeight
                 camera2View.layoutParams = params
                 camera2View.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
@@ -126,7 +126,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
 
             //捕捉白色赛道
             val whiteCatch =
-                Vision.catchByColor(hsv, Scalar(0.0, 0.0, 180.0), Scalar(180.0, 35.0, 255.0))
+                Vision.catchByColor(hsv, Constant.WhiteColorLower, Constant.WhiteColorUpper)
             if (whiteCatch.second.isNotEmpty()) {
 //                val pipe = Mat.zeros(res.size(), CvType.CV_8UC1)
 //                Imgproc.drawContours(
@@ -146,7 +146,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
 
             //捕捉黑色障碍物
             val blackCatch =
-                Vision.catchByColor(hsv, Scalar(0.0, 0.0, 0.0), Scalar(180.0, 255.0, 100.0), 10, 3)
+                Vision.catchByColor(hsv, Constant.BlackColorLower, Constant.BlackColorUpper, 10, 3)
             if (blackCatch.second.isNotEmpty()) {
                 val blackObject = blackCatch.second[0]
                 Imgproc.drawContours(
@@ -155,7 +155,9 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 ) //蓝线包围黑色目标物
 //                debug("面积 = ${Imgproc.contourArea(blackObject)}")
                 if (Imgproc.contourArea(blackObject) > Constant.MinBlackObjArea) {
-                    Connector.needToBePredicted = Vision.prepareToPredict(rgba, hsv)
+                    val needToPredict = Vision.prepareToPredict(rgba, hsv)
+                    Connector.needToBePredicted = needToPredict.first
+                    return needToPredict.second
                 } else setSignal(text = "物体太远")
             } else setSignal(text = "没有目标")
 
@@ -283,6 +285,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
     }
 
     override fun onCameraViewStarted(width: Int, height: Int) {
+        debug("Width = $width, Height = $height")
         cameraFrameWidth = width
         cameraFrameHeight = height
 //        camera2View.enableFpsMeter()

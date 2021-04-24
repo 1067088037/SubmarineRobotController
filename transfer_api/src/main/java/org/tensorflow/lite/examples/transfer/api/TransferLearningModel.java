@@ -15,6 +15,8 @@ limitations under the License.
 
 package org.tensorflow.lite.examples.transfer.api;
 
+import android.util.Log;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -87,7 +89,7 @@ public final class TransferLearningModel implements Closeable {
   // Setting this to a higher value allows to calculate bottlenecks for more samples while
   // adding them to the bottleneck collection is blocked by an active training thread.
   private static final int NUM_THREADS =
-      Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+      Math.max(8, Runtime.getRuntime().availableProcessors() - 1);
 
   private final int[] bottleneckShape;
 

@@ -6,6 +6,8 @@ import edu.scut.submarinerobotcontroller.Connector
 //全局调试
 fun debug(any: Any) = Log.d("调试", any.toString())
 
+fun debugForSQLite(any: Any) = debug("SQLite: $any")
+
 fun logRunOnUi(any: Any) = debug("runOnUIThread = $any")
 
 fun <T> limit(value: T, min: T, max: T): T {

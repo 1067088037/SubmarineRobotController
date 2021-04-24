@@ -1,6 +1,7 @@
 package edu.scut.submarinerobotcontroller.tools
 
 import android.graphics.Bitmap
+import edu.scut.submarinerobotcontroller.Constant
 import edu.scut.submarinerobotcontroller.tensorflow.ImageUtils
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -10,6 +11,21 @@ import org.opencv.imgproc.Imgproc
  * 视觉处理
  */
 object Vision {
+
+    private var internalWhiteArea = Mat()
+
+    private fun whiteArea(rows: Int, cols: Int, channels: Int): Mat {
+        return if (internalWhiteArea.rows() == rows && internalWhiteArea.cols() == cols && internalWhiteArea.channels() == channels) internalWhiteArea
+        else {
+            internalWhiteArea = Mat.ones(rows, cols, CvType.CV_8UC1)
+            repeat(7) {
+                Core.add(internalWhiteArea, internalWhiteArea, internalWhiteArea)
+            }
+            internalWhiteArea = copyToChannels(internalWhiteArea, 4)
+            internalWhiteArea
+        }
+    }
+
 
     /**
      * 获取平均点
@@ -61,32 +77,39 @@ object Vision {
         Utils.bitmapToMat(bitmap, rgba)
         val hsv = Mat()
         Imgproc.cvtColor(rgba, hsv, Imgproc.COLOR_RGB2HSV)
-        return prepareToPredict(rgba, hsv)
+        return prepareToPredict(rgba, hsv).first
     }
 
     /**
      * 准备用于推理的信息
      */
-    fun prepareToPredict(rgba: Mat, hsv: Mat): FloatArray {
-//        val blackMask =
-//            catchByColor(hsv, Scalar(0.0, 0.0, 0.0), Scalar(180.0, 255.0, 100.0), 10, 3).first
-//        val whiteArea = Mat.ones(rgba.rows(), rgba.cols(), CvType.CV_8UC1)
-//        repeat(7) {
-//            Core.add(whiteArea, whiteArea, whiteArea)
-//        }
-//        val channelsOfWhite =
-//            arrayListOf(whiteArea, whiteArea, whiteArea, whiteArea)
-//        Core.merge(channelsOfWhite, whiteArea)
-//        val res = Mat()
-//        rgba.copyTo(res, blackMask)
+    fun prepareToPredict(rgba: Mat, hsv: Mat): Pair<FloatArray, Mat> {
+        val blackMask =
+            catchByColor(hsv, Constant.BlackColorLower, Constant.BlackColorUpper, 10, 3).first
+        val outBlackMask = Mat()
+        Core.bitwise_not(blackMask, outBlackMask)
+        val dst = Mat()
+        rgba.copyTo(dst, blackMask)
         val bitmap = Bitmap.createBitmap(
-            hsv.width(),
-            hsv.height(),
+            rgba.width(),
+            rgba.height(),
             Bitmap.Config.ARGB_8888
         )
-//        Utils.matToBitmap(res, bitmap)
-        Utils.matToBitmap(rgba, bitmap)
-        return ImageUtils.prepareCameraImage(bitmap, 0)
+
+        Core.bitwise_or(dst, copyToChannels(outBlackMask, rgba.channels()), dst)
+        val res = dst
+        Utils.matToBitmap(res, bitmap) //预处理之后
+        return Pair(
+            ImageUtils.prepareCameraImage(bitmap, 0),
+            res
+        )
+    }
+
+    fun copyToChannels(input: Mat, channels: Int): Mat {
+        val output = Mat()
+        val arrayList = MutableList(channels) { input }
+        Core.merge(arrayList, output)
+        return output
     }
 
     /**
