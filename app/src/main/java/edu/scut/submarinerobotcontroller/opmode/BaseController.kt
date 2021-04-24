@@ -149,10 +149,12 @@ abstract class BaseController : EventObserver, IRobotMode {
             Thread.currentThread().name = "基础控制器主线程"
             while (Thread.currentThread().isInterrupted.not()) {
                 if (mainController != null) {
-                    while (mainController?.robotMode() == RobotMode.WaitForStart)
-                        Thread.sleep(1)
+                    while (mainController?.robotMode() == RobotMode.WaitForStart) {
+                        Thread.sleep(10)
+                    }
 
-                    mainController?.run()
+                    if (mainController?.robotMode() != RobotMode.Stop)
+                        mainController?.run()
 
                     mainController?.setSidePower(0.0, 0.0, 0.0, 0.0)
                     mainController?.setTopPower(0.0)

@@ -75,9 +75,6 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
             viewModel.motorPowerColor.value =
                 doubles.map { if (it >= 0) green else red }.toTypedArray()
         })
-        viewModel.signalBackgroundColor.observe(this, androidx.lifecycle.Observer {
-            dataBinding.signalLight.setBackgroundColor(it)
-        })
 
         setSignal()
         commandTextView = dataBinding.textCommand
@@ -245,6 +242,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         for (i in tempArray) {
             temp += i
         }
+        temp += "\n"
 
         if (this::viewModel.isInitialized) {
             viewModel.command.postValue(temp)

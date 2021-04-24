@@ -32,7 +32,7 @@ object Constant {
     const val ServoMaxPosition: Int = 180
     const val MotorTopViewEps = 0.01
 
-    val WhiteColorLower = Scalar(0.0, 0.0, 180.0)
+    val WhiteColorLower = Scalar(0.0, 0.0, 160.0)
     val WhiteColorUpper = Scalar(180.0, 40.0, 255.0)
     val BlackColorLower = Scalar(0.0, 0.0, 0.0)
     val BlackColorUpper = Scalar(180.0, 255.0, 80.0)

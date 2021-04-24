@@ -2,6 +2,7 @@ package edu.scut.submarinerobotcontroller
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.hardware.*
 import android.media.MediaPlayer
@@ -46,8 +47,6 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
     private lateinit var viewModel: ControllerSharedViewModel
     private lateinit var dataBinding: ActivityControllerBinding
 
-    lateinit var runAndPauseButton: Button
-    lateinit var emergencyStopButton: Button
     lateinit var runningTime: TextView
     lateinit var coordinatorLayout: CoordinatorLayout
     lateinit var controllerTitleTextView: TextView
@@ -277,6 +276,8 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
         dataBinding.lifecycleOwner = this
 
         viewModel.time.value = getString(R.string.running_time)
+        viewModel.runAndPauseButtonColor.postValue(ColorStateList.valueOf(getColor(R.color.positive_green)))
+        viewModel.runAndPauseButtonText.postValue(getString(R.string.run_icon))
 
         debug("Controller onCreate 总线程数 = ${Thread.activeCount()}")
         val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
@@ -286,8 +287,10 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
         val tabs: TabLayout = findViewById(R.id.tabs)
         tabs.setupWithViewPager(viewPager)
 
-        runAndPauseButton = findViewById(R.id.btn_run_and_pause)
-        emergencyStopButton = findViewById(R.id.btn_emergency_stop)
+        viewModel.signalBackgroundColor.observe(this, androidx.lifecycle.Observer {
+            dataBinding.signalLight.setBackgroundColor(it)
+        })
+
         runningTime = findViewById(R.id.text_running_time)
         coordinatorLayout = findViewById(R.id.controller_coordinatorlayout)
         controllerTitleTextView = findViewById(R.id.controller_title)
@@ -464,8 +467,8 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
         clock.start()
         Connector.updateCommand!!(getString(R.string.run))
         Connector.controllerCanScroll = false
-        runAndPauseButton.setBackgroundColor(getColor(R.color.neutral_blue))
-        runAndPauseButton.text = getString(R.string.pause_icon)
+        viewModel.runAndPauseButtonColor.postValue(ColorStateList.valueOf(getColor(R.color.neutral_blue)))
+        viewModel.runAndPauseButtonText.postValue(getString(R.string.pause_icon))
 
         robotController?.onContinue() //先干其它事情最后再开始
     }
@@ -481,8 +484,8 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
             Connector.updateCommand!!(getString(R.string.pause))
         }
         Connector.controllerCanScroll = true
-        runAndPauseButton.setBackgroundColor(getColor(R.color.positive_green))
-        runAndPauseButton.text = getString(R.string.run_icon)
+        viewModel.runAndPauseButtonColor.postValue(ColorStateList.valueOf(getColor(R.color.positive_green)))
+        viewModel.runAndPauseButtonText.postValue(getString(R.string.run_icon))
     }
 
     /**

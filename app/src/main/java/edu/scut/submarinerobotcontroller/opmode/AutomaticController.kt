@@ -53,29 +53,37 @@ class AutomaticController : BaseController() {
         val clock = Clock()
         clock.reset()
         clock.start()
+        val waitTime = 3000
+        while (clock.getMillSeconds() <= waitTime) {
+            command(clock.getMillSeconds().toString())
+            Connector.setSignal(255, 255, 255, 0, "${waitTime - clock.getMillSeconds()}")
+            Thread.sleep(50)
+        }
         while (robotMode(null) != RobotMode.Stop) {
             monitorAngles()
             if (currentRunningMode != Direction.Right) {
                 when (direction) {
                     Direction.Forward -> {
                         toRightTimes = 0
-                        val rotatePower = (navigatePipe.angle - 90) * 0.005
+                        val rotatePower = (navigatePipe.angle - 90) * 0.05
                         val translatePower = navigatePipe.offsetX * 0.0005
                         setHorizontalPower(
-                            forward = 0.5,
+                            forward = 0.5, // TODO: 2021/4/24
                             rotate = rotatePower,
-                            translate = translatePower
+//                            translate = translatePower
+                            translate = 0.0 // TODO: 2021/4/24
                         )
                     }
                     Direction.Right -> {
-                        if (clock.getMillSeconds() >= 5000) {
+                        if (clock.getMillSeconds() >= 10000) {
                             if (toRightTimes < 10) {
                                 toRightTimes++
                             } else {
-                                toRightTimes = 0
-                                currentRunningMode = Direction.Right
-                                rotateTargetAngle = currentAngleX + 90.0
-                                command("当前状态更改为 $currentRunningMode")
+                                // TODO: 2021/4/24
+//                                toRightTimes = 0
+//                                currentRunningMode = Direction.Right
+//                                rotateTargetAngle = currentAngleX + 90.0
+//                                command("当前状态更改为 $currentRunningMode")
                             }
                         }
                     }
@@ -85,7 +93,7 @@ class AutomaticController : BaseController() {
                     }
                 }
             } else {
-                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.005
+                val rotatePower = (rotateTargetAngle - currentAngleX) * 0.002
                 setHorizontalPower(forward = 0.0, rotate = rotatePower, translate = 0.0)
                 if (abs(rotateTargetAngle - currentAngleX) <= 3) {
                     setHorizontalPower(forward = 0.0, rotate = 0.0)
@@ -99,7 +107,8 @@ class AutomaticController : BaseController() {
                 Diving.Down -> currentDepthPower -= 0.010
             }
             currentDepthPower = limit(currentDepthPower, -1.0, 1.0)
-            setTopPower(currentDepthPower)
+//            setTopPower(currentDepthPower) todo
+            setTopPower(0.0) // TODO: 2021/4/24  
             Thread.sleep(20)
         }
         Connector.updateDegreeWithTurn("")

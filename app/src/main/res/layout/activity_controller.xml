@@ -25,6 +25,15 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
+                android:id="@+id/signal_light"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@{data.signal}"
+                android:textColor="@{data.signalTextColor}"
+                android:textSize="72sp" />
+
+            <TextView
                 android:id="@+id/controller_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -78,9 +87,9 @@
                         android:layout_width="50dp"
                         android:layout_height="match_parent"
                         android:layout_marginStart="8dp"
-                        android:backgroundTint="@color/positive_green"
+                        android:backgroundTint="@{data.runAndPauseButtonColor}"
                         android:onClick="runAndPause"
-                        android:text="@string/run_icon"
+                        android:text="@{data.runAndPauseButtonText}"
                         android:textStyle="bold" />
 
                     <Button

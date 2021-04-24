@@ -7,6 +7,7 @@ import edu.scut.submarinerobotcontroller.tools.limit
 import java.security.InvalidParameterException
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.sign
 
 /**
  * 马达
@@ -30,7 +31,6 @@ class Motor constructor(
                     limit(value, -1.0, 1.0)
                 else 0.0
             setOrGetPower(inputPower)
-
         }
         get() = setOrGetPower(Double.NaN)
 
@@ -44,8 +44,13 @@ class Motor constructor(
 
     //获取发送给硬件的功率
     fun getHardwarePower(): Byte {
-        val power = (power * Constant.MotorMaxPower * if (direction == Direction.Forward) 1 else -1)
+        var power = (power * Constant.MotorMaxPower * if (direction == Direction.Forward) 1 else -1)
         if (power !in -100.0..100.0) throw IllegalStateException("Motor 功率越界 功率=$power")
+        if (port == 2) power = when (power) {
+            in -0.01..0.01 -> 0.0
+            !in -0.30..0.30 -> power
+            else -> sign(power) * 0.30
+        }
         return power.toInt().toByte()
     }
 }

@@ -1,5 +1,6 @@
 package edu.scut.submarinerobotcontroller.ui.viewmodel
 
+import android.content.res.ColorStateList
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
@@ -9,6 +10,8 @@ class ControllerSharedViewModel : ViewModel() {
     val ping = MutableLiveData("Ping")
     val pingColor = MutableLiveData(0)
     val time = MutableLiveData("时间")
+    val runAndPauseButtonColor = MutableLiveData(ColorStateList.valueOf(0))
+    val runAndPauseButtonText = MutableLiveData("")
 
     //共享
     val motorPower = MutableLiveData(Array(6) { 0.0 })
