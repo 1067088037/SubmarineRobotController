@@ -76,7 +76,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 doubles.map { if (it >= 0) green else red }.toTypedArray()
         })
 
-        setSignal()
+        setSignal(byTime = true)
         commandTextView = dataBinding.textCommand
 
         camera2View = dataBinding.camera2View
@@ -158,7 +158,13 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 } else setSignal(text = "物体太远")
             } else setSignal(text = "没有目标")
 
-        } else setSignal(text = "不在运行")
+        } else {
+            if (Connector.autoRunningId == -1) {
+                setSignal(255, 255, 128, 128, text = "长按选择", byTime = true)
+            } else {
+                setSignal(text = "不在运行", byTime = true)
+            }
+        }
 
         return res
     }
@@ -171,8 +177,10 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         r: Int = 0,
         g: Int = 0,
         b: Int = 0,
-        text: String = "Signal"
+        text: String = "Signal",
+        byTime: Boolean = false
     ) {
+        if (byTime.not()) return
         viewModel.signal.postValue(text)
         viewModel.signalTextColor.postValue(Color.argb(a, 255, 255, 255))
         viewModel.signalBackgroundColor.postValue(Color.argb(a, r, g, b))

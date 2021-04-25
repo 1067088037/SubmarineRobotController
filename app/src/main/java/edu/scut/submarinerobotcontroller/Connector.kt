@@ -18,7 +18,7 @@ object Connector {
     lateinit var updateOrientationAngles: (values: FloatArray) -> Unit
     lateinit var updateDegreeWithTurn: (str: String) -> Unit
     lateinit var getOrientationAngles: () -> FloatArray
-    lateinit var setSignal: (a: Int, r: Int, g: Int, b: Int, text: String) -> Unit
+    lateinit var setSignal: (a: Int, r: Int, g: Int, b: Int, text: String, byTime: Boolean) -> Unit
     lateinit var setCamera2View: (enable: Boolean) -> Unit
     lateinit var stop: (stopMode: StopMode) -> Unit
     var updateCommand: ((string: String) -> Unit)? = null

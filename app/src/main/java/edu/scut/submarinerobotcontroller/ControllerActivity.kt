@@ -127,36 +127,38 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                                 if (cylinderCoincidence >= Constant.NeedCoincidence) {
                                     cylinderTimes++
                                     cubeTimes = 0
-                                    if (cubeSound.isPlaying) cubeSound.stop()
+//                                    if (cubeSound.isPlaying) cubeSound.stop() // TODO: 2021/4/25  
                                     if (cylinderTimes >= Constant.NeedPredictTimes) {
-                                        if (cylinderSound.isPlaying.not()) cylinderSound.start()
+//                                        if (cylinderSound.isPlaying.not()) cylinderSound.start() // TODO: 2021/4/25  
                                         Connector.setSignal(
                                             255,
                                             255,
                                             0,
                                             0,
-                                            "圆柱体"
+                                            "圆柱体",
+                                            false
                                         )
                                     }
-                                } else Connector.setSignal(32, 0, 0, 0, "置信度低")
+                                } else Connector.setSignal(32, 0, 0, 0, "置信度低", false)
                             } else {
                                 if (cubeCoincidence >= Constant.NeedCoincidence) {
                                     cubeTimes++
                                     cylinderTimes = 0
-                                    if (cylinderSound.isPlaying) cylinderSound.stop()
+//                                    if (cylinderSound.isPlaying) cylinderSound.stop() // TODO: 2021/4/25  
                                     if (cubeTimes >= Constant.NeedPredictTimes) {
-                                        if (cubeSound.isPlaying.not()) cubeSound.start()
+//                                        if (cubeSound.isPlaying.not()) cubeSound.start() // TODO: 2021/4/25  
                                         Connector.setSignal(
                                             255,
                                             0,
                                             255,
                                             0,
-                                            "正方体"
+                                            "正方体",
+                                            false
                                         )
                                     }
-                                } else Connector.setSignal(32, 0, 0, 0, "置信度低")
+                                } else Connector.setSignal(32, 0, 0, 0, "置信度低", false)
                             }
-                        } else Connector.setSignal(32, 0, 0, 0, "预测失败")
+                        } else Connector.setSignal(32, 0, 0, 0, "预测失败", false)
                         Connector.needToBePredicted = null
                     } else {
                         repeat(10) {

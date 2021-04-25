@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import edu.scut.submarinerobotcontroller.Connector
+import edu.scut.submarinerobotcontroller.Constant
 import java.nio.ByteBuffer
 import java.util.ArrayList
 import kotlin.math.min

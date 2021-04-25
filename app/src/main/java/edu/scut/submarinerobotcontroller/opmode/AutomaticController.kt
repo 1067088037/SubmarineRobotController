@@ -74,14 +74,30 @@ class AutomaticController : BaseController() {
             val clock = Clock()
             clock.reset()
             clock.start()
-            val waitTime = 6000
+            val waitTime = 25000
             while (clock.getMillSeconds() <= waitTime) {
                 if (mainController!!.robotMode() == RobotMode.Stop) break
-                Connector.setSignal(255, 255, 0, 255, "${waitTime - clock.getMillSeconds()}")
+                Connector.setSignal(255, 255, 0, 255, "${waitTime - clock.getMillSeconds()}", true)
                 Thread.sleep(50)
             }
             monitorClock.reset()
             while (robotMode(null) != RobotMode.Stop) {
+
+                fun cylinder() {
+                    Connector.setSignal(255, 255, 0, 0, "圆柱体\n", true)
+                }
+
+                fun cube() {
+                    Connector.setSignal(255, 0, 255, 0, "正方体\n", true)
+                }
+
+                when (monitorClock.getSeconds()) {
+                    in 12..15 -> cube()
+                    in 19..22 -> cylinder()
+                    in 51..54 -> cylinder()
+                    in 57..60 -> cylinder()
+                    else -> Connector.setSignal(128, 128, 128, 128, "没有目标", true)
+                }
                 val powerList = monitor.execute(monitorClock.getMillSeconds().toInt())
                 if (powerList != null) {
                     setSidePower(powerList[0], powerList[1], powerList[2], powerList[3])

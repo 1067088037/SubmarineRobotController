@@ -52,9 +52,9 @@
     <string name="tab_auto">自动控制</string>
     <string name="tab_manual">手动控制</string>
 
-    <string name="run_icon">▶</string>
-    <string name="pause_icon">| |</string>
-    <string name="emergency_stop_icon">■</string>
+    <string name="run_icon">\n启动 ▶\n</string>
+    <string name="pause_icon">\n暂停 | |\n</string>
+    <string name="emergency_stop_icon">\n停止 ■\n</string>
 
     <string name="run">程序启动</string>
     <string name="pause">程序暂停</string>
