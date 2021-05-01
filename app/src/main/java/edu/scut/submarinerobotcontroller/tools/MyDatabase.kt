@@ -133,17 +133,17 @@ class MyDatabase(
     }
 
     fun getTargetData(): TimePowerDataList {
-        if (Connector.autoRunningId == -1) {
-            val cursor1 = readableDatabase.query("power", null, null, null, null, null, null)
-            if (cursor1.count != 0) {
-                cursor1.moveToLast()
-                val lastId = cursor1.getInt(cursor1.getColumnIndex("id"))
-                cursor1.close()
-                Connector.autoRunningId = lastId
-            } else {
-                Connector.autoRunningId = -1
-            }
-        }
+//        if (Connector.autoRunningId == -1) {
+//            val cursor1 = readableDatabase.query("power", null, null, null, null, null, null)
+//            if (cursor1.count != 0) {
+//                cursor1.moveToLast()
+//                val lastId = cursor1.getInt(cursor1.getColumnIndex("id"))
+//                cursor1.close()
+//                Connector.autoRunningId = lastId
+//            } else {
+//                Connector.autoRunningId = -1
+//            }
+//        }
 
 //        val args = arrayOf(Constant.SelectedDataId.toString())
         val args = arrayOf(Connector.autoRunningId.toString())

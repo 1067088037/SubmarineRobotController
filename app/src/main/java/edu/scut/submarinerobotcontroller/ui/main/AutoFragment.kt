@@ -76,7 +76,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                 doubles.map { if (it >= 0) green else red }.toTypedArray()
         })
 
-        setSignal(byTime = true)
+        setSignal(runMode = AutoRunMode.DoNotCare)
         commandTextView = dataBinding.textCommand
 
         camera2View = dataBinding.camera2View
@@ -89,7 +89,7 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
 //                params.width = cameraFrameWidth
 //                params.height = cameraFrameWidth * 4 / 3
                 val width = camera2View.measuredWidth
-                val height = camera2View.measuredHeight
+//                val height = camera2View.measuredHeight
                 params.width = width
                 params.height = width * cameraFrameWidth / cameraFrameHeight
                 camera2View.layoutParams = params
@@ -155,14 +155,13 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
                     val needToPredict = Vision.prepareToPredict(rgba, hsv)
                     Connector.needToBePredicted = needToPredict.first
 //                    return needToPredict.second
-                } else setSignal(text = "物体太远")
-            } else setSignal(text = "没有目标")
-
+                } else setSignal(text = "物体太远", runMode = AutoRunMode.TrueAuto)
+            } else setSignal(text = "没有目标", runMode = AutoRunMode.TrueAuto)
         } else {
-            if (Connector.autoRunningId == -1) {
-                setSignal(255, 255, 128, 128, text = "长按选择", byTime = true)
+            if (Connector.runMode == AutoRunMode.DoNotCare) {
+                setSignal(255, 255, 128, 128, text = "长按选择", runMode = AutoRunMode.DoNotCare)
             } else {
-                setSignal(text = "不在运行", byTime = true)
+                setSignal(text = "不在运行", runMode = AutoRunMode.DoNotCare)
             }
         }
 
@@ -178,9 +177,9 @@ class AutoFragment : Fragment(), CameraBridgeViewBase.CvCameraViewListener2 {
         g: Int = 0,
         b: Int = 0,
         text: String = "Signal",
-        byTime: Boolean = false
+        runMode: AutoRunMode
     ) {
-        if (byTime.not()) return
+        if (runMode != AutoRunMode.DoNotCare && runMode != Connector.runMode) return
         viewModel.signal.postValue(text)
         viewModel.signalTextColor.postValue(Color.argb(a, 255, 255, 255))
         viewModel.signalBackgroundColor.postValue(Color.argb(a, r, g, b))

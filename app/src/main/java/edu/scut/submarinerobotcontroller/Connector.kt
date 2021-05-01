@@ -5,6 +5,7 @@ import android.graphics.drawable.GradientDrawable
 import cn.wandersnail.bluetooth.Connection
 import edu.scut.submarinerobotcontroller.opmode.*
 import edu.scut.submarinerobotcontroller.tensorflow.TransferLearningModelWrapper
+import edu.scut.submarinerobotcontroller.tools.AutoRunMode
 import edu.scut.submarinerobotcontroller.tools.debug
 import org.opencv.android.JavaCamera2View
 import org.opencv.core.Mat
@@ -18,7 +19,7 @@ object Connector {
     lateinit var updateOrientationAngles: (values: FloatArray) -> Unit
     lateinit var updateDegreeWithTurn: (str: String) -> Unit
     lateinit var getOrientationAngles: () -> FloatArray
-    lateinit var setSignal: (a: Int, r: Int, g: Int, b: Int, text: String, byTime: Boolean) -> Unit
+    lateinit var setSignal: (a: Int, r: Int, g: Int, b: Int, text: String, runMode: AutoRunMode) -> Unit
     lateinit var setCamera2View: (enable: Boolean) -> Unit
     lateinit var stop: (stopMode: StopMode) -> Unit
     var updateCommand: ((string: String) -> Unit)? = null
@@ -35,6 +36,7 @@ object Connector {
     var isAutomaticControl = false//false手机控制, true单片机控制
     var needToBePredicted: FloatArray? = null
 
+    var runMode = AutoRunMode.DoNotCare
     var autoRunningId = -1
         set(value) {
             field = value

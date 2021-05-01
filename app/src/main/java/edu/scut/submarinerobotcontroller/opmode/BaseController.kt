@@ -5,6 +5,7 @@ import cn.wandersnail.bluetooth.BTManager
 import cn.wandersnail.bluetooth.EventObserver
 import cn.wandersnail.commons.observer.Observe
 import edu.scut.submarinerobotcontroller.Connector
+import edu.scut.submarinerobotcontroller.tools.AutoRunMode
 import edu.scut.submarinerobotcontroller.tools.debug
 
 abstract class BaseController : EventObserver, IRobotMode {
@@ -23,6 +24,8 @@ abstract class BaseController : EventObserver, IRobotMode {
     lateinit var motorArray: Array<Motor>
 
     init {
+        Connector.runMode = AutoRunMode.DoNotCare
+        Connector.autoRunningId = -1
         if (baseControllerMainThread.state == Thread.State.NEW) baseControllerMainThread.start()
         BTManager.getInstance().registerObserver(this)
         onInit()
@@ -69,7 +72,10 @@ abstract class BaseController : EventObserver, IRobotMode {
         Thread.sleep(50)
         Connector.mainController =
             if (this is AutomaticController) AutomaticController()
-            else ManualController()
+            else ManualController(
+                (this as ManualController).context,
+                this.runOnUiThread
+            )
         Thread.sleep(50)
     }
 

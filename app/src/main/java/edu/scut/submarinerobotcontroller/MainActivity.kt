@@ -338,14 +338,14 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
     /**
      * 打开控制器Activity
      */
-    fun startControllerActivity(view: View) {
-        startControllerActivity()
+    fun View.startControllerActivity() {
+        this@MainActivity.startControllerActivity()
     }
 
     /**
      * 手动申请权限
      */
-    fun manualRequestPermission(view: View) {
+    fun View.manualRequestPermission() {
         requestPermissions(
             Constant.NeedPermission,
             Constant.ManualRequestPermission
@@ -355,8 +355,8 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
     /**
      * 蓝牙
      */
-    fun manualConnectBluetooth(view: View) {
-        manualConnectBluetooth()
+    fun View.manualConnectBluetooth() {
+        this@MainActivity.manualConnectBluetooth()
     }
 
     // ############################## 按钮 ############################## End
@@ -465,7 +465,7 @@ class MainActivity : AppCompatActivity(), EventObserver, TransferLearningModel.L
                 viewModel.trainingHintText.postValue("首次启动需要训练深度学习模型\n正在加载训练列表")
                 viewModel.trainingProgressColor.postValue(Color.rgb(98, 0, 238))
                 val sampleIndices =
-                    if (Constant.AddSampleNumber == -1) Constant.TrainData2Array.indices else 1..Constant.AddSampleNumber
+                    if (Constant.AddSampleNumber == Int.MAX_VALUE) Constant.TrainData2Array.indices else 1..Constant.AddSampleNumber
                 for (i in sampleIndices) {
                     trainingList.offer(
                         Pair(

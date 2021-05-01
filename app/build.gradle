@@ -12,8 +12,8 @@ android {
         applicationId "edu.scut.submarinerobotcontroller"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 50
-        versionName "3.3.2"
+        versionCode 51
+        versionName "3.4.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
@@ -28,9 +28,7 @@ android {
         }
     }
 
-    dataBinding {
-        enabled = true
-    }
+    android.buildFeatures.dataBinding = true
 
 //    sourceSets {
 //        main {

@@ -37,10 +37,10 @@ object Constant {
     val BlackColorLower = Scalar(0.0, 0.0, 0.0)
     val BlackColorUpper = Scalar(180.0, 255.0, 80.0)
 
-    const val ModelVersion = 58 //每次修改训练模型都要+1
+    const val ModelVersion = 60 //每次修改训练模型都要+1
     const val NeedCoincidence = 0.86
     const val TargetTrainLoss = 0.0060
-    const val AddSampleNumber = -1 //-1代表全部
+    const val AddSampleNumber = Int.MAX_VALUE //-1代表全部
     const val NeedPredictTimes = 15
 
     const val CommandMaxLine = 30

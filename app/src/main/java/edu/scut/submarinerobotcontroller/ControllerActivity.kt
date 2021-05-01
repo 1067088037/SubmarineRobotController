@@ -104,67 +104,83 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
                         viewModel.time.postValue("${getString(R.string.running_time)}\n${clock.getSeconds()} 秒")
                         lastShowTime = clock.getSeconds()
                     }
+                    debug("AutoId = ${Connector.autoRunningId}")
                     postMotorPowerUi()
 //                debug("我的线程数 = $threadCount， 总线程数 = ${Thread.activeCount()}")
                     if (Connector.robotControllerMode == RobotControllerMode.Automatic)
                         Connector.updateOrientationAngles(orientationAngles())
 //                Connector.updateCommand(" when ${clock.getMillSeconds()} ms")
                     //推理部分
-                    if (Connector.needToBePredicted != null) {
+                    if (Connector.runMode == AutoRunMode.TrueAuto) {
+                        if (Connector.needToBePredicted != null) {
 //                    debug("推理开始")
-                        val predictions =
-                            Connector.tlModel?.predict(Connector.needToBePredicted)
-                        if (predictions != null && predictions.isNotEmpty()) {
-                            var cylinderCoincidence = 0f
-                            var cubeCoincidence = 0f
-                            predictions.forEach {
-                                if (it.className == Constant.CylinderId)
-                                    cylinderCoincidence = it.confidence
-                                if (it.className == Constant.CubeId)
-                                    cubeCoincidence = it.confidence
-                            }
-                            if (cylinderCoincidence > cubeCoincidence) {
-                                if (cylinderCoincidence >= Constant.NeedCoincidence) {
-                                    cylinderTimes++
-                                    cubeTimes = 0
-//                                    if (cubeSound.isPlaying) cubeSound.stop() // TODO: 2021/4/25  
-                                    if (cylinderTimes >= Constant.NeedPredictTimes) {
-//                                        if (cylinderSound.isPlaying.not()) cylinderSound.start() // TODO: 2021/4/25  
-                                        Connector.setSignal(
-                                            255,
-                                            255,
-                                            0,
-                                            0,
-                                            "圆柱体",
-                                            false
-                                        )
-                                    }
-                                } else Connector.setSignal(32, 0, 0, 0, "置信度低", false)
-                            } else {
-                                if (cubeCoincidence >= Constant.NeedCoincidence) {
-                                    cubeTimes++
-                                    cylinderTimes = 0
-//                                    if (cylinderSound.isPlaying) cylinderSound.stop() // TODO: 2021/4/25  
-                                    if (cubeTimes >= Constant.NeedPredictTimes) {
-//                                        if (cubeSound.isPlaying.not()) cubeSound.start() // TODO: 2021/4/25  
-                                        Connector.setSignal(
-                                            255,
-                                            0,
-                                            255,
-                                            0,
-                                            "正方体",
-                                            false
-                                        )
-                                    }
-                                } else Connector.setSignal(32, 0, 0, 0, "置信度低", false)
-                            }
-                        } else Connector.setSignal(32, 0, 0, 0, "预测失败", false)
-                        Connector.needToBePredicted = null
-                    } else {
-                        repeat(10) {
-                            Thread.sleep(1)
-                            if (isRunning(false).not()) return@repeat
+                            val predictions =
+                                Connector.tlModel?.predict(Connector.needToBePredicted)
+                            if (predictions != null && predictions.isNotEmpty()) {
+                                var cylinderCoincidence = 0f
+                                var cubeCoincidence = 0f
+                                predictions.forEach {
+                                    if (it.className == Constant.CylinderId)
+                                        cylinderCoincidence = it.confidence
+                                    if (it.className == Constant.CubeId)
+                                        cubeCoincidence = it.confidence
+                                }
+                                if (cylinderCoincidence > cubeCoincidence) {
+                                    if (cylinderCoincidence >= Constant.NeedCoincidence) {
+                                        cylinderTimes++
+                                        cubeTimes = 0
+                                        if (cubeSound.isPlaying) cubeSound.stop()
+                                        if (cylinderTimes >= Constant.NeedPredictTimes) {
+                                            if (cylinderSound.isPlaying.not()) cylinderSound.start()
+                                            Connector.setSignal(
+                                                255,
+                                                255,
+                                                0,
+                                                0,
+                                                "圆柱体",
+                                                AutoRunMode.TrueAuto
+                                            )
+                                        }
+                                    } else Connector.setSignal(
+                                        32,
+                                        0,
+                                        0,
+                                        0,
+                                        "置信度低",
+                                        AutoRunMode.TrueAuto
+                                    )
+                                } else {
+                                    if (cubeCoincidence >= Constant.NeedCoincidence) {
+                                        cubeTimes++
+                                        cylinderTimes = 0
+                                        if (cylinderSound.isPlaying) cylinderSound.stop()
+                                        if (cubeTimes >= Constant.NeedPredictTimes) {
+                                            if (cubeSound.isPlaying.not()) cubeSound.start()
+                                            Connector.setSignal(
+                                                255,
+                                                0,
+                                                255,
+                                                0,
+                                                "正方体",
+                                                AutoRunMode.TrueAuto
+                                            )
+                                        }
+                                    } else Connector.setSignal(
+                                        32,
+                                        0,
+                                        0,
+                                        0,
+                                        "置信度低",
+                                        AutoRunMode.TrueAuto
+                                    )
+                                }
+                            } else Connector.setSignal(32, 0, 0, 0, "预测失败", AutoRunMode.TrueAuto)
+                            Connector.needToBePredicted = null
                         }
+                    }
+                    repeat(10) {
+                        Thread.sleep(1)
+                        if (isRunning(false).not()) return@repeat
                     }
                 }
             } else Thread.sleep(10)
@@ -294,12 +310,17 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
             debug("长按标签")
             val autoData = MyDatabase.getInstance().getAllData()
             val autoList = autoData.map { it.description }.toMutableList()
-            autoList.add(0, "空")
+            autoList.add(0, "自动控制核心")
             AlertDialog.Builder(this)
                 .setTitle("选择自动程序")
                 .setItems(autoList.toTypedArray()) { _: DialogInterface?, which: Int ->
-                    if (which == 0) Connector.autoRunningId = -1
-                    else Connector.autoRunningId = autoData[which - 1].id
+                    if (which == 0) {
+                        Connector.autoRunningId = -1
+                        Connector.runMode = AutoRunMode.TrueAuto
+                    } else {
+                        Connector.autoRunningId = autoData[which - 1].id
+                        Connector.runMode = AutoRunMode.RecordedManual
+                    }
                 }
                 .show()
             return@setOnLongClickListener true
@@ -611,7 +632,7 @@ class ControllerActivity : AppCompatActivity(), SensorEventListener, EventObserv
             RobotControllerMode.Automatic
         } else {
             Connector.setCamera2View(false)
-            Connector.mainController = ManualController()
+            Connector.mainController = ManualController(this, this::runOnUiThread)
             RobotControllerMode.Manual
         }
         if (isRunning(false)) stop(StopMode.Emergency)
