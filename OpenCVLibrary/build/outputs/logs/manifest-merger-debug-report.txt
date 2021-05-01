@@ -1,29 +1,29 @@
 -- Merging decision tree log ---
 manifest
-ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:1-6:12
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:1-6:12
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:1-6:12
+ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:1-6:12
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:1-6:12
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:1-6:12
 	package
-		ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:3:5-25
-		INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-		INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:3:5-25
+		INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:11-69
+		ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:2:11-69
 uses-permission#android.permission.CAMERA
-ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:5-65
+ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:5-65
 	android:name
-		ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:22-62
+		ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:22-62
 uses-sdk
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-		ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-		INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-		ADDED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
-		INJECTED from D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		ADDED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+		INJECTED from D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml

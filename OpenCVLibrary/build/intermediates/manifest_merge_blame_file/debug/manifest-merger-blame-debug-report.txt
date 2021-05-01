@@ -4,12 +4,12 @@
 4
 5    <uses-sdk
 6        android:minSdkVersion="23"
-6-->D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+6-->D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
 7        android:targetSdkVersion="30" />
-7-->D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
+7-->D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml
 8
 9    <uses-permission android:name="android.permission.CAMERA" />
-9-->D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:5-65
-9-->D:\AndroidStudioProjects\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:22-62
+9-->D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:5-65
+9-->D:\SubmarineRobotController\OpenCVLibrary\src\main\AndroidManifest.xml:5:22-62
 10
 11</manifest>
